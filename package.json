@@ -1,0 +1,9 @@
+{
+  "name": "santokki",
+  "version": "1.0.0",
+  "description": "Santokki - Korean Fragrance for Europe",
+  "scripts": {
+    "start": "npx serve . -p 7000",
+    "dev": "npx serve . -p 7000"
+  }
+}
