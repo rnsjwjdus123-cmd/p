@@ -3,41 +3,151 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Santokki | Checkout</title>
+  <title>Santokki · Checkout</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <style>
+    body { background:var(--off-white); }
+    .co-page { min-height:100vh; padding:3rem 1.5rem; }
+    .co-top { max-width:960px; margin:0 auto 2rem; }
+    .co-top a { font-size:0.78rem; color:var(--gray-500); text-decoration:none; }
+    .co-top a:hover { color:var(--accent); }
+    .co-top h1 { font-family:var(--font-display); font-size:clamp(1.6rem,3vw,2.4rem); font-weight:400; color:var(--gray-900); margin-top:0.5rem; }
+    .co-wrap { max-width:960px; margin:0 auto; display:grid; grid-template-columns:1fr minmax(260px,320px); gap:2rem; align-items:start; }
+    .co-card { background:var(--white); border:1px solid var(--border); border-radius:14px; padding:2rem; }
+    .co-card h2 { font-family:var(--font-display); font-size:1.1rem; font-weight:500; color:var(--gray-900); margin-bottom:1.4rem; padding-bottom:0.8rem; border-bottom:1px solid var(--border); }
+    .co-field { margin-bottom:1.1rem; }
+    .co-field label { display:block; font-size:0.68rem; font-weight:500; letter-spacing:0.1em; text-transform:uppercase; color:var(--gray-500); margin-bottom:0.36rem; }
+    .co-field input, .co-field textarea { width:100%; padding:0.72rem 1rem; font-family:var(--font-body); font-size:0.88rem; color:var(--gray-900); background:var(--off-white); border:1px solid var(--border); border-radius:8px; outline:none; box-sizing:border-box; transition:border-color 0.2s,box-shadow 0.2s; resize:vertical; }
+    .co-field input:focus, .co-field textarea:focus { border-color:var(--green-400); box-shadow:0 0 0 3px rgba(86,140,94,0.1); }
+    .co-terms { margin:1.2rem 0; padding:1rem; background:var(--off-white); border-radius:8px; border:1px solid var(--border); }
+    .co-terms h3 { font-size:0.7rem; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:var(--gray-700); margin-bottom:0.6rem; }
+    .co-terms p { font-size:0.76rem; color:var(--gray-500); line-height:1.7; margin-bottom:0.8rem; }
+    .co-terms label { display:flex; align-items:flex-start; gap:0.55rem; font-size:0.8rem; color:var(--gray-700); cursor:pointer; margin-bottom:0.5rem; line-height:1.5; }
+    .co-terms input[type="checkbox"] { width:16px; height:16px; accent-color:var(--accent); flex-shrink:0; margin-top:2px; }
+    .co-submit { width:100%; padding:0.95rem; margin-top:0.8rem; font-family:var(--font-body); font-size:0.9rem; font-weight:500; letter-spacing:0.05em; color:var(--white); background:var(--accent); border:none; border-radius:8px; cursor:pointer; transition:background 0.2s,transform 0.15s; }
+    .co-submit:hover { background:var(--accent-hover); transform:translateY(-1px); }
+    .co-submit:disabled { background:var(--gray-300); cursor:not-allowed; transform:none; }
+    .co-msg { margin-top:1rem; padding:0.85rem 1rem; border-radius:8px; font-size:0.82rem; text-align:center; display:none; }
+    .co-msg.ok { background:#f0f7f1; color:var(--accent); border:1px solid var(--green-200); display:block; }
+    .co-msg.err { background:#fff0f0; color:#c0392b; border:1px solid #fcc; display:block; }
+    /* Summary */
+    .co-item { display:flex; gap:1rem; align-items:center; padding:0.9rem 0; border-bottom:1px solid var(--border); }
+    .co-item:last-child { border-bottom:none; }
+    .co-item img { width:58px; height:58px; object-fit:cover; border-radius:8px; background:var(--green-50); flex-shrink:0; }
+    .co-item-info { flex:1; }
+    .co-item-name { font-size:0.88rem; font-weight:500; color:var(--gray-900); }
+    .co-item-meta { font-size:0.74rem; color:var(--gray-400); margin-top:0.15rem; }
+    .co-item-price { font-size:0.9rem; font-weight:500; color:var(--gray-800); }
+    .co-totals { margin-top:1rem; }
+    .co-totals-row { display:flex; justify-content:space-between; font-size:0.84rem; color:var(--gray-600); margin-bottom:0.5rem; }
+    .co-totals-row.final { font-size:1rem; font-weight:600; color:var(--gray-900); margin-top:0.8rem; padding-top:0.8rem; border-top:1px solid var(--border); }
+    @media(max-width:660px){ .co-wrap { grid-template-columns:1fr; } }
+  </style>
 </head>
 <body>
-  <div class="top-banner">
-    <p>FREE SHIPPING: In Europe from €50 · Worldwide from €80</p>
+<div class="co-page">
+  <div class="co-top">
+    <a href="javascript:history.back()">← Back</a>
+    <h1>Checkout</h1>
   </div>
-
-  <header class="header static-header">
-    <nav class="nav">
-      <a href="index.html#home" class="logo">
-        <img class="logo-image" src="assets/products/화면.png" alt="Santokki logo symbol">
-        <span class="logo-wordmark">
-          <span class="logo-text">Santokki</span>
-          <span class="logo-korean">산토끼</span>
-        </span>
-      </a>
-      <ul class="nav-links">
-        <li><a href="index.html#home">Home</a></li>
-        <li><a href="index.html#products">Products</a></li>
-      </ul>
-    </nav>
-  </header>
-
-  <main class="checkout-main">
-    <section class="checkout-wrap container">
-      <div id="checkout-page" class="checkout-layout">
-        <!-- Filled by checkout.js -->
+  <div class="co-wrap">
+    <!-- Form -->
+    <div class="co-card">
+      <h2>Delivery Information</h2>
+      <form id="co-form" novalidate>
+        <div class="co-field"><label for="co-name">Full Name</label><input type="text" id="co-name" placeholder="Jane Smith" required></div>
+        <div class="co-field"><label for="co-phone">Phone Number</label><input type="tel" id="co-phone" placeholder="+44 7700 900000" required></div>
+        <div class="co-field"><label for="co-addr">Delivery Address</label><textarea id="co-addr" rows="3" placeholder="Street, City, Postcode, Country" required></textarea></div>
+        <div class="co-terms">
+          <h3>Terms &amp; Conditions</h3>
+          <p>By placing this order you agree to Santokki's Terms of Service and Privacy Policy. Orders are processed within 2–3 business days. Free shipping within Europe for orders over £50.</p>
+          <label><input type="checkbox" id="co-terms" required> I agree to the Terms &amp; Conditions and Privacy Policy</label>
+          <label><input type="checkbox" id="co-mkt"> I'd like to receive product updates and offers (optional)</label>
+        </div>
+        <button class="co-submit" type="submit" id="co-btn">Place Order</button>
+        <div class="co-msg" id="co-msg"></div>
+      </form>
+    </div>
+    <!-- Summary -->
+    <div class="co-card">
+      <h2>Order Summary</h2>
+      <div id="co-items"></div>
+      <div class="co-totals">
+        <div class="co-totals-row"><span>Subtotal</span><span id="co-subtotal">—</span></div>
+        <div class="co-totals-row"><span>Shipping</span><span id="co-shipping">—</span></div>
+        <div class="co-totals-row final"><span>Total</span><span id="co-total">—</span></div>
       </div>
-    </section>
-  </main>
+    </div>
+  </div>
+</div>
+<script>
+  const CART_KEY='santokki_cart';
+  const getCart=()=>JSON.parse(localStorage.getItem(CART_KEY)||'[]');
+  const parsePrice=s=>parseFloat(String(s).replace(/[^0-9.]/g,''))||0;
 
-  <script src="checkout.js"></script>
+  async function loadProducts(){
+    try{ const r=await fetch('products.json'); const d=await r.json(); return d.products||[]; }
+    catch{ return []; }
+  }
+
+  async function init(){
+    const products=await loadProducts();
+    const params=new URLSearchParams(window.location.search);
+    const pid=params.get('id');
+    const pqty=parseInt(params.get('qty')||'1',10);
+    let items=pid?[{id:pid,qty:pqty}]:getCart();
+
+    const el=document.getElementById('co-items');
+    let subtotal=0;
+
+    if(!items.length){
+      el.innerHTML='<p style="color:var(--gray-400);font-size:0.85rem;padding:1rem 0">No items.</p>';
+    } else {
+      items.forEach(item=>{
+        const p=products.find(x=>x.id===item.id);
+        if(!p) return;
+        const up=parsePrice(p.price);
+        const lt=up*item.qty;
+        subtotal+=lt;
+        const d=document.createElement('div');
+        d.className='co-item';
+        d.innerHTML=`
+          <img src="${p.image}" alt="${p.name}" onerror="this.src='https://placehold.co/58x58/f0ede8/2d3e2d?text=S'">
+          <div class="co-item-info">
+            <div class="co-item-name">${p.name}</div>
+            <div class="co-item-meta">${p.categoryLabel||''} · Qty ${item.qty}</div>
+          </div>
+          <div class="co-item-price">£${lt.toFixed(2)}</div>`;
+        el.appendChild(d);
+      });
+    }
+
+    const ship=subtotal>=50?0:4.95;
+    document.getElementById('co-subtotal').textContent='£'+subtotal.toFixed(2);
+    document.getElementById('co-shipping').textContent=ship===0?'Free':'£'+ship.toFixed(2);
+    document.getElementById('co-total').textContent='£'+(subtotal+ship).toFixed(2);
+  }
+
+  document.getElementById('co-form').addEventListener('submit',e=>{
+    e.preventDefault();
+    const name=document.getElementById('co-name').value.trim();
+    const phone=document.getElementById('co-phone').value.trim();
+    const addr=document.getElementById('co-addr').value.trim();
+    const terms=document.getElementById('co-terms').checked;
+    const m=document.getElementById('co-msg');
+    if(!name||!phone||!addr) return (m.textContent='Please fill in all required fields.',m.className='co-msg err');
+    if(!terms) return (m.textContent='Please agree to the Terms & Conditions.',m.className='co-msg err');
+    localStorage.removeItem(CART_KEY);
+    document.getElementById('co-btn').disabled=true;
+    m.textContent='✓ Order placed successfully! Thank you, '+name+'.';
+    m.className='co-msg ok';
+    setTimeout(()=>window.location.href='index.html',2500);
+  });
+
+  init();
+</script>
 </body>
 </html>

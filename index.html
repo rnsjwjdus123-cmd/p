@@ -12,10 +12,6 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <!-- Top Banner (PGP-inspired) -->
-  <div class="top-banner">
-    <p>FREE SHIPPING: In Europe from €50 · Worldwide from €80</p>
-  </div>
 
   <header class="header">
     <nav class="nav">
@@ -23,7 +19,6 @@
         <img class="logo-image" src="assets/products/santokkilogo.png" alt="Santokki logo symbol">
         <span class="logo-wordmark">
           <span class="logo-text">Santokki</span>
-          <span class="logo-korean">산토끼</span>
         </span>
       </a>
       <ul class="nav-links">
@@ -32,6 +27,16 @@
         <li><a href="#scent-test">Scent Test</a></li>
         <li><a href="#products">Products</a></li>
       </ul>
+      <div class="nav-actions">
+        <a href="auth.html" class="nav-icon-btn" id="nav-auth-btn" title="Sign In">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          <span id="nav-auth-label">Sign In</span>
+        </a>
+        <a href="cart.html" class="nav-icon-btn" title="Cart">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+          <span class="nav-cart-badge" id="nav-cart-badge" style="display:none">0</span>
+        </a>
+      </div>
     </nav>
   </header>
 
@@ -40,7 +45,7 @@
     <section class="home-hero" id="home">
       <div class="home-slider" id="home-slider">
         <article class="home-slide active">
-          <img src="assets/The king's Room.png" alt="Santokki King's Room — Jagae Edition diffuser" onerror="this.src='https://images.unsplash.com/photo-1471943311424-646960669fbc?auto=format&fit=crop&w=1600&q=80'">
+          <video class="home-slide-video" src="assets/main_video.mp4" autoplay muted loop playsinline></video>
           <div class="home-slide-content">
             <p class="slide-kicker">Jagae Edition · Diffuser</p>
             <h1>Queen's Room</h1>
@@ -60,7 +65,7 @@
         </article>
 
         <article class="home-slide">
-          <img src="assets/Memory of Tiles.png" alt="Santokki Memory of Tiles — room spray" onerror="this.src='https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1600&q=80'">
+          <video class="home-slide-video" src="assets/main_video_2.mp4" autoplay muted loop playsinline></video>
           <div class="home-slide-content">
             <p class="slide-kicker">Room Spray</p>
             <h1>Memory of Tiles</h1>
@@ -69,11 +74,12 @@
           </div>
         </article>
       </div>
-      <div class="slider-dots" id="slider-dots" aria-label="Slide navigation">
-        <button class="slider-dot active" data-slide="0" aria-label="Go to slide 1"></button>
-        <button class="slider-dot" data-slide="1" aria-label="Go to slide 2"></button>
-        <button class="slider-dot" data-slide="2" aria-label="Go to slide 3"></button>
-      </div>
+      <button class="home-slider-btn home-slider-prev" id="home-slider-prev" aria-label="Previous slide" type="button">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <button class="home-slider-btn home-slider-next" id="home-slider-next" aria-label="Next slide" type="button">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
     </section>
 
     <!-- Story (Page 2 Feel) -->
@@ -97,18 +103,7 @@
       <div class="hero-visual">
         <article class="hanji-poster">
           <div class="poster-brand-art">
-            <img src="assets/products/santokkiback.png" alt="Santokki brand mood board" onerror="this.style.display='none'">
-          </div>
-          <p class="poster-kicker">Instagram Zodiac Scent Test</p>
-          <h3>Zodiac Scent Archetype</h3>
-          <p class="poster-copy">
-            Short questions about your scent preference, Korean mood curiosity,
-            and zodiac sign energy help us map your profile and recommend your best match.
-          </p>
-          <div class="poster-tags">
-            <span>Zodiac Energy</span>
-            <span>Korean Preference</span>
-            <span>Personal Match</span>
+            <img src="assets/stroy_image.png" alt="Santokki brand mood board">
           </div>
         </article>
       </div>
@@ -127,6 +122,40 @@
       </div>
     </section>
 
+    <!-- Shoppable Hotspot Section -->
+    <section class="hotspot-section" id="hotspot-section">
+      <div class="hotspot-scene">
+        <img class="hotspot-bg" src="assets/select.png" alt="Santokki collection scene">
+
+        <!-- Hotspot 1: King's Room Diffuser (left black bottle - red circle at center body) -->
+        <button class="hotspot-pin" style="left:16%;top:62%;" data-hotspot="diffuser-002" aria-label="King's Room Diffuser" type="button">
+          <span class="hotspot-ring"></span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+
+        <!-- Hotspot 2: Queen's Room Diffuser (flower bottle - red circle upper area) -->
+        <button class="hotspot-pin" style="left:35%;top:42%;" data-hotspot="diffuser-001" aria-label="Queen's Room Diffuser" type="button">
+          <span class="hotspot-ring"></span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+
+        <!-- Hotspot 3: Jangdokdae Candle (brown jar - red circle at bottom tassel) -->
+        <button class="hotspot-pin" style="left:59%;top:68%;" data-hotspot="candle-005" aria-label="Korean Jangdokdae Candle" type="button">
+          <span class="hotspot-ring"></span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+
+        <!-- Hotspot 4: Naju Pear Blossom Candle (ivory round - red circle on surface) -->
+        <button class="hotspot-pin" style="left:81%;top:50%;" data-hotspot="candle-002" aria-label="Naju Pear Blossom Candle" type="button">
+          <span class="hotspot-ring"></span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+
+        <!-- Tooltip cards (populated by JS) -->
+        <div class="hotspot-tooltip hidden" id="hotspot-tooltip"></div>
+      </div>
+    </section>
+
     <!-- Products Section -->
     <section class="products-section" id="products">
       <div class="container">
@@ -134,71 +163,30 @@
         <div class="products-layout">
           <aside class="products-sidebar">
             <div class="facettes-panel">
-              <h3 class="facettes-title">Facettes</h3>
               <div class="facettes-cloud">
-                <button class="facette-btn size-sm active" data-facette="all">
-                  <span class="facette-main">All</span>
-                  <span class="facette-patches">
-                    <span class="facette-patch">Tous</span>
-                    <span class="facette-patch">Alle</span>
-                  </span>
-                  <span class="facette-ko">전체 향조</span>
+                <button class="facette-btn active" data-facette="all">
+                  <span class="facette-main facette-size-lg">All</span>
                 </button>
-                <button class="facette-btn size-xl" data-facette="woody">
-                  <span class="facette-main">Woody</span>
-                  <span class="facette-patches">
-                    <span class="facette-patch">Boise</span>
-                    <span class="facette-patch">Holzig</span>
-                  </span>
-                  <span class="facette-ko">은은한 나무 위에 펼쳐진 도포자락</span>
+                <button class="facette-btn" data-facette="woody">
+                  <span class="facette-main facette-size-xl">Woody</span>
                 </button>
-                <button class="facette-btn size-lg" data-facette="fresh">
-                  <span class="facette-main">Fresh</span>
-                  <span class="facette-patches">
-                    <span class="facette-patch">Frais</span>
-                    <span class="facette-patch">Frisch</span>
-                  </span>
-                  <span class="facette-ko">이른 새벽 이슬이 닿는 공기결</span>
+                <button class="facette-btn" data-facette="fresh">
+                  <span class="facette-main facette-size-lg">Fresh</span>
                 </button>
-                <button class="facette-btn size-md" data-facette="green">
-                  <span class="facette-main">Green</span>
-                  <span class="facette-patches">
-                    <span class="facette-patch">Vert</span>
-                    <span class="facette-patch">Grun</span>
-                  </span>
-                  <span class="facette-ko">솔숲의 결을 닮은 푸른 숨</span>
+                <button class="facette-btn" data-facette="floral">
+                  <span class="facette-main facette-size-sm">Floral</span>
                 </button>
-                <button class="facette-btn size-md" data-facette="citrus">
-                  <span class="facette-main">Citrus</span>
-                  <span class="facette-patches">
-                    <span class="facette-patch">Agrumes</span>
-                    <span class="facette-patch">Zitrus</span>
-                  </span>
-                  <span class="facette-ko">햇살 조각이 스치는 밝은 결</span>
+                <button class="facette-btn" data-facette="citrus">
+                  <span class="facette-main facette-size-md">Citrus</span>
                 </button>
-                <button class="facette-btn size-sm" data-facette="floral">
-                  <span class="facette-main">Floral</span>
-                  <span class="facette-patches">
-                    <span class="facette-patch">Floral</span>
-                    <span class="facette-patch">Blumig</span>
-                  </span>
-                  <span class="facette-ko">꽃잎 사이로 번지는 잔향</span>
+                <button class="facette-btn" data-facette="green">
+                  <span class="facette-main facette-size-sm">Green</span>
                 </button>
-                <button class="facette-btn size-lg" data-facette="warm">
-                  <span class="facette-main">Warm</span>
-                  <span class="facette-patches">
-                    <span class="facette-patch">Chaud</span>
-                    <span class="facette-patch">Warm</span>
-                  </span>
-                  <span class="facette-ko">온돌의 온기처럼 천천히 감도는 향</span>
+                <button class="facette-btn" data-facette="warm">
+                  <span class="facette-main facette-size-lg">Warm</span>
                 </button>
-                <button class="facette-btn size-md" data-facette="sweet">
-                  <span class="facette-main">Gourmand</span>
-                  <span class="facette-patches">
-                    <span class="facette-patch">Gourmand</span>
-                    <span class="facette-patch">Suss</span>
-                  </span>
-                  <span class="facette-ko">고요한 밤에 남는 달콤한 여운</span>
+                <button class="facette-btn" data-facette="sweet">
+                  <span class="facette-main facette-size-xl">Gourmand</span>
                 </button>
               </div>
             </div>
@@ -227,20 +215,6 @@
                 </select>
               </div>
             </div>
-
-            <section class="category-banners" id="category-banners" aria-label="Category banners">
-              <!-- Category banners injected by JS -->
-            </section>
-
-            <section class="featured-products" aria-label="Featured products">
-              <div class="featured-head">
-                <h3>Featured Picks</h3>
-                <p>Visually curated highlights from Santokki.</p>
-              </div>
-              <div class="featured-grid" id="featured-grid">
-                <!-- Featured products loaded from JSON -->
-              </div>
-            </section>
 
             <div class="products-grid" id="products-grid">
               <!-- Products loaded from JSON -->
@@ -300,11 +274,11 @@
       <div class="footer-delivery">
         <div class="delivery-item">
           <strong>EUROPE</strong>
-          <p>Free delivery on orders over €50</p>
+          <p>Free delivery on orders over £50</p>
         </div>
         <div class="delivery-item">
           <strong>WORLDWIDE</strong>
-          <p>Free delivery on orders over €80</p>
+          <p>Free delivery on orders over £80</p>
         </div>
       </div>
       <div class="footer-main">
@@ -316,5 +290,17 @@
   </footer>
 
   <script src="script.js"></script>
+  <script>
+    // Nav: session label + cart badge
+    (function(){
+      const sess = localStorage.getItem('santokki_session');
+      const label = document.getElementById('nav-auth-label');
+      if (sess && label) label.textContent = sess.split('@')[0];
+      const cart = JSON.parse(localStorage.getItem('santokki_cart') || '[]');
+      const qty = cart.reduce(function(s,i){ return s + (i.qty||0); }, 0);
+      const badge = document.getElementById('nav-cart-badge');
+      if (badge && qty > 0) { badge.textContent = qty; badge.style.display = 'flex'; }
+    })();
+  </script>
 </body>
 </html>

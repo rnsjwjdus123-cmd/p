@@ -81,29 +81,23 @@ async function init() {
 }
 
 function setupHomeSlider() {
-  if (!homeSlides.length || !sliderDots.length) return;
+  if (!homeSlides.length) return;
   let current = 0;
 
   const goToSlide = (index) => {
-    current = index;
+    current = ((index % homeSlides.length) + homeSlides.length) % homeSlides.length;
     homeSlides.forEach((slide, idx) => {
       slide.classList.toggle('active', idx === current);
     });
-    sliderDots.forEach((dot, idx) => {
-      dot.classList.toggle('active', idx === current);
-    });
   };
 
-  sliderDots.forEach((dot) => {
-    dot.addEventListener('click', () => {
-      const idx = Number(dot.dataset.slide || 0);
-      goToSlide(idx);
-    });
-  });
+  const prevBtn = document.getElementById('home-slider-prev');
+  const nextBtn = document.getElementById('home-slider-next');
+  if (prevBtn) prevBtn.addEventListener('click', () => goToSlide(current - 1));
+  if (nextBtn) nextBtn.addEventListener('click', () => goToSlide(current + 1));
 
   setInterval(() => {
-    const next = (current + 1) % homeSlides.length;
-    goToSlide(next);
+    goToSlide(current + 1);
   }, 7000);
 }
 
@@ -170,14 +164,14 @@ function parsePrice(str) {
   return parseFloat(str.replace(/[^\d.,]/g, '').replace(',', '.')) || 0;
 }
 
-// Render products (PGP-inspired layout)
+// Render products — clean 3-column grid, no featured/banners
 function renderProducts() {
   const filtered = getFilteredProducts();
-  resultsCount.textContent = `Showing ${filtered.length} product${filtered.length !== 1 ? 's' : ''}`;
-  renderFeaturedProducts(filtered);
-  renderCategoryBanners(filtered);
+  if (resultsCount) resultsCount.textContent = `Showing ${filtered.length} product${filtered.length !== 1 ? 's' : ''}`;
 
-  productsGrid.innerHTML = filtered.map(product => `
+  productsGrid.innerHTML = filtered.length === 0
+    ? '<p class="products-empty">No products found for this filter.</p>'
+    : filtered.map(product => `
     <article class="product-card" data-category="${product.category}">
       <a href="product.html?id=${encodeURIComponent(product.id)}" class="product-link" data-product-id="${product.id}">
         <div class="product-image-wrap">
@@ -464,4 +458,85 @@ function setupScrollHeader() {
   });
 }
 
+// ── Shoppable Hotspot ─────────────────────────────────────
+function setupHotspots() {
+  const pins = document.querySelectorAll('.hotspot-pin');
+  const tooltip = document.getElementById('hotspot-tooltip');
+  if (!pins.length || !tooltip) return;
+
+  let activePin = null;
+
+  function closeTooltip() {
+    tooltip.classList.add('hidden');
+    tooltip.innerHTML = '';
+    if (activePin) { activePin.classList.remove('active'); activePin = null; }
+  }
+
+  pins.forEach((pin) => {
+    pin.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = pin.dataset.hotspot;
+      if (activePin === pin) { closeTooltip(); return; }
+
+      const product = productsData ? productsData.find(p => p.id === id) : null;
+      if (!product) return;
+
+      if (activePin) { activePin.classList.remove('active'); }
+      activePin = pin;
+      pin.classList.add('active');
+
+      // Position: parse left/top from inline style
+      const leftPct = parseFloat(pin.style.left);
+      const topPct  = parseFloat(pin.style.top);
+      const scene   = pin.parentElement;
+      const sw = scene.offsetWidth;
+      const sh = scene.offsetHeight;
+      const tw = 272; // tooltip width + margin
+
+      let tooltipLeft = (leftPct / 100) * sw + 26;
+      if (tooltipLeft + tw > sw) tooltipLeft = (leftPct / 100) * sw - tw - 10;
+
+      tooltip.style.left = tooltipLeft + 'px';
+      tooltip.style.top  = (topPct / 100) * sh + 'px';
+
+      tooltip.classList.remove('hidden');
+      tooltip.innerHTML = `
+        <button class="hotspot-tooltip-close" id="hotspot-close" type="button" aria-label="Close">✕</button>
+        <div class="hotspot-tooltip-inner">
+          <img class="hotspot-tooltip-img" src="${product.image}" alt="${product.name}" onerror="this.src='https://placehold.co/54x54/2d3e2d/ffffff?text=S'">
+          <div class="hotspot-tooltip-body">
+            <p class="hotspot-tooltip-name">${product.name}</p>
+            <p class="hotspot-tooltip-desc">${product.description}</p>
+            <div class="hotspot-tooltip-footer">
+              <a class="hotspot-tooltip-link" href="product.html?id=${encodeURIComponent(product.id)}">View product</a>
+              <span class="hotspot-tooltip-price">· ${product.price}</span>
+            </div>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('hotspot-close').addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        closeTooltip();
+      });
+    });
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!tooltip.contains(e.target)) closeTooltip();
+  });
+}
+
 init();
+
+// Hotspots require productsData — call after init resolves
+(async () => {
+  // Wait until productsData is populated by init()
+  const waitForData = () => new Promise(res => {
+    const check = setInterval(() => {
+      if (productsData) { clearInterval(check); res(); }
+    }, 50);
+  });
+  await waitForData();
+  setupHotspots();
+})();

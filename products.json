@@ -10,9 +10,13 @@
       "concept": "The calm and mysterious atmosphere of dawn fog settling over the pine forests of Seoul's Namsan mountain—wet moss, cool air, and the stillness before the city wakes.",
       "scentNotes": "Oakmoss, pine needle, damp earth, white cedarwood.",
       "marketingPoint": "Translucent matte glass paired with a grey wet-paper mould wrapped around the base recreates the hazy forest view and raw texture of a fog-filled wood. A fragrance object that pairs naturally with the British climate and adds a layer of sustainable luxury.",
-      "price": "€18.90",
+      "price": "£18.90",
       "shopifyCheckoutUrlTemplate": "https://YOUR-STORE.myshopify.com/cart/44444444444444:{{qty}}",
       "image": "assets/Mornig Mist of Namsan.png",
+      "images": [
+        "assets/Mornig Mist of Namsan.png",
+        "assets/Mornig Mist of Namsan_2.png"
+      ],
       "scentProfile": { "fresh": 9, "woody": 7, "green": 9, "citrus": 2, "floral": 2, "warm": 1, "sweet": 1 }
     },
     {
@@ -25,9 +29,13 @@
       "concept": "The cool sea breeze blowing from Jeju's basalt shoreline, carried with the refreshing lift of wild mint growing between the volcanic rocks.",
       "scentNotes": "Sea salt, peppermint, eucalyptus, ambergris.",
       "marketingPoint": "Crafted from 100% PCR PET recycled ocean plastics, sand-blasted to replicate the rough basalt texture of Jeju's coastline. A raw, uncoated hanji label torn at the edges creates a striking visual contrast between stone and wave, while intuitively conveying an eco-conscious message.",
-      "price": "€18.90",
+      "price": "£18.90",
       "shopifyCheckoutUrlTemplate": "https://YOUR-STORE.myshopify.com/cart/55555555555555:{{qty}}",
       "image": "assets/Jeju Sea Salt & Mint.png",
+      "images": [
+        "assets/Jeju Sea Salt & Mint.png",
+        "assets/Jeju Sea Salt & Mint_2.png"
+      ],
       "scentProfile": { "fresh": 10, "woody": 2, "green": 5, "citrus": 8, "floral": 1, "warm": 2, "sweet": 2 }
     },
     {
@@ -40,9 +48,13 @@
       "concept": "The vitality rising from wet roof tiles and courtyard soil in the moments right after a summer downpour—petrichor, earth, and life renewed.",
       "scentNotes": "Mineral, rainwater, oakmoss.",
       "marketingPoint": "A dark charcoal ceramic vessel with semi-gloss coating captures the damp sheen of rain-soaked roof tiles. The asymmetric curved body, modelled after a hanok eave, brings the earthy petrichor scent beloved by British noses to life through Korean traditional curve aesthetics.",
-      "price": "€18.90",
+      "price": "£18.90",
       "shopifyCheckoutUrlTemplate": "https://YOUR-STORE.myshopify.com/cart/66666666666666:{{qty}}",
       "image": "assets/Memory of Tiles.png",
+      "images": [
+        "assets/Memory of Tiles.png",
+        "assets/Memory of Tiles_2.png"
+      ],
       "scentProfile": { "fresh": 5, "woody": 5, "green": 6, "citrus": 1, "floral": 2, "warm": 7, "sweet": 1 }
     },
     {
@@ -56,9 +68,13 @@
       "concept": "The first dawn of the Joseon king—rising before all others to pray for the peace of the nation. In the stillness before light, the lofty pine of Geunjeongjeon courtyard mingles with the scent of ink freshly ground at his desk in Sajeongjeon, capturing a moment of royal intellectual devotion.",
       "scentNotes": "Refined to remove cold metallic notes, enriched with soft tea and orchid—the scholar's signature scent—to emphasise the Joseon royal spirit. Top: Black pepper, fresh Korean pine needle, white tea / Mid: Deep ink accord, orchid, cedarwood / Base: Agarwood, vetiver, smoky amber, sandalwood.",
       "marketingPoint": "A weighty matte black ceramic vessel shaped after the king's inkstone conveys the gravity and intellectual gravitas of the throne. The front is engraved with the pine and moon of the Irworobongdo screen in fine white intaglio—an embodiment of Joseon royal legitimacy and restrained aesthetics. A brass cap handle modelled on the royal seal completes the premium narrative. The eco-friendly packaging replicates the rough-paper texture of royal archives, bridging Korea's historical heritage with global design sensibilities.",
-      "price": "€32.90",
+      "price": "£32.90",
       "shopifyCheckoutUrlTemplate": "https://YOUR-STORE.myshopify.com/cart/67676767676767:{{qty}}",
       "image": "assets/The king's Room.png",
+      "images": [
+        "assets/The king's Room.png",
+        "assets/The king's Room_2.png"
+      ],
       "scentProfile": { "fresh": 3, "woody": 9, "green": 4, "citrus": 1, "floral": 2, "warm": 8, "sweet": 1 }
     },
     {
@@ -72,9 +88,13 @@
       "concept": "Before the dawn breaks, in the still courtyard of the Queen's chamber (Gyotaejeon). White peonies bloom softly beneath moonlight filtered through latticed paper doors. The Queen's restrained elegance and inner calm—hidden behind all her splendour—expressed in fragrance.",
       "scentNotes": "Softened from its original exotic saffron and leather, this accord is rebalanced with Korean tea and gentle wood to emphasise grace and serenity. Top: White pear, delicate green tea leaf / Mid: Peony (white mo란), white rose, lily of the valley / Base: Soft musk, clean linen, sandalwood.",
       "marketingPoint": "A matte black ceramic vessel—symbol of the Queen's measured grace—creates a refined, deeply contemplative spatial aesthetic. The white relief peony engraving, designed with the beauty of negative space, reflects the harmony between Korean craftsmanship and contemporary minimalism. A matte gold phoenix emblem at the base adds unique collector's value as a royal-tier premium object. As candlelight gently illuminates the relief pattern, the room transforms into a calm, peaceful sanctuary of luxury.",
-      "price": "€32.90",
+      "price": "£32.90",
       "shopifyCheckoutUrlTemplate": "https://YOUR-STORE.myshopify.com/cart/68686868686868:{{qty}}",
       "image": "assets/The Queen's Room.png",
+      "images": [
+        "assets/The Queen's Room.png",
+        "assets/The Queen's Room_2.png"
+      ],
       "scentProfile": { "fresh": 4, "woody": 3, "green": 3, "citrus": 2, "floral": 10, "warm": 6, "sweet": 5 }
     },
     {
@@ -88,9 +108,13 @@
       "concept": "A rainy dawn, seen through the eyes of a Joseon princess gazing into her quiet hanok garden. The aesthetics of a private world—rain falling through elegant peonies, interwoven with the princess's ornaments: butterfly hairpins and silk tassels.",
       "scentNotes": "Peony, pink pepper, white rose, soft amber.",
       "marketingPoint": "A soft-touch grey (#B2B1B1) ceramic vessel holds the calm of a rain-soaked garden—luxurious in texture and restrained in tone.",
-      "price": "€24.90",
+      "price": "£24.90",
       "shopifyCheckoutUrlTemplate": "https://YOUR-STORE.myshopify.com/cart/77777777777777:{{qty}}",
       "image": "assets/The Princess's Flower Garden.png",
+      "images": [
+        "assets/The Princess's Flower Garden.png",
+        "assets/The Princess's Flower Garden_2.png"
+      ],
       "scentProfile": { "fresh": 4, "woody": 1, "green": 2, "citrus": 1, "floral": 10, "warm": 4, "sweet": 6 }
     },
     {
@@ -104,47 +128,59 @@
       "concept": "The bright, sweet purity felt standing among the pear blossom groves of Naju in full spring bloom—white petals as far as the eye can see, and air that tastes of honey.",
       "scentNotes": "Pear, freesia, white floral, honey.",
       "marketingPoint": "Housed in a white porcelain vessel that echoes the soft curves of a moon jar. The universally beloved pear accord—popular throughout the UK—is layered with the narrative of Naju's pear blossom season, creating a design that feels both familiar and distinctly special.",
-      "price": "€24.90",
+      "price": "£24.90",
       "shopifyCheckoutUrlTemplate": "https://YOUR-STORE.myshopify.com/cart/88888888888888:{{qty}}",
       "image": "assets/Naju Pear Blossom.png",
-      "scentProfile": { "fresh": 6, "woody": 1, "green": 3, "citrus": 2, "floral": 8, "warm": 4, "sweet": 7 }
+      "images": [
+        "assets/Naju Pear Blossom.png",
+        "assets/Naju Pear Blossom_2.png"
+      ],
+      "scentProfile": { "fresh": 6, "woody": 1, "green": 3, "citrus": 4, "floral": 9, "warm": 3, "sweet": 8 }
     },
     {
       "id": "candle-003",
-      "name": "Rain Beneath Dancheong",
+      "name": "Ginger & Citron Warmth",
+      "nameKo": "생강과 유자의 온기",
+      "category": "candle",
+      "categoryLabel": "Candle",
+      "useArea": "kitchen",
+      "description": "Warming Korean spiced citron for cozy shared evenings in the living room.",
+      "concept": "The warming comfort of sipping hot yuja-cha on a cold winter evening—a Korean home ritual that blends the zing of fresh citron with the gentle heat of ginger root.",
+      "scentNotes": "Yuzu, ginger, warm spice, soft wood.",
+      "marketingPoint": "A terracotta-toned ceramic vessel reflects the gentle warmth of a Korean ondol-heated room in winter. The yuzu and ginger combination resonates with the British palate's love of warming spice, while the Korean tea ceremony narrative adds cultural depth and storytelling.",
+      "price": "£24.90",
+      "shopifyCheckoutUrlTemplate": "https://YOUR-STORE.myshopify.com/cart/99999999999999:{{qty}}",
+      "image": "assets/Ginger & Citron Warmth.png",
+      "images": [
+        "assets/Ginger & Citron Warmth.png",
+        "assets/Ginger & Citron Warmth_2.png"
+      ],
+      "scentProfile": { "fresh": 4, "woody": 3, "green": 2, "citrus": 9, "floral": 1, "warm": 9, "sweet": 6 }
+    },
+    {
+      "id": "candle-004",
+      "name": "The Rainsound under the Dancheong",
       "nameKo": "단청 아래 빗소리",
       "category": "candle",
       "categoryLabel": "Candle",
       "useArea": "bedroom",
-      "description": "Poetic rain-in-hanok mood with wet cedar, wildflowers, and sandalwood.",
-      "concept": "The quiet and lyrical landscape of rain falling gently over a hanok garden—a moment suspended in time beneath the vivid painted eaves of dancheong.",
-      "scentNotes": "Wet cedar, wildflower, sandalwood.",
-      "marketingPoint": "Optimised for emotional visual storytelling, rooted in the concept of an enigmatic Eastern garden—where architecture, rain, and fragrance become one.",
-      "price": "€24.90",
-      "shopifyCheckoutUrlTemplate": "https://YOUR-STORE.myshopify.com/cart/99999999999999:{{qty}}",
-      "image": "assets/The rainsound under the Dancheong.png",
-      "scentProfile": { "fresh": 4, "woody": 7, "green": 3, "citrus": 1, "floral": 3, "warm": 8, "sweet": 2 }
-    },
-    {
-      "id": "candle-004",
-      "name": "Ginger & Citron Warmth",
-      "nameKo": "생강과 유자",
-      "category": "candle",
-      "categoryLabel": "Candle",
-      "useArea": "kitchen",
-      "description": "Warm ginger-citron tea atmosphere for welcoming kitchen moments.",
-      "concept": "The warm, spiced sweetness of a hot ginger and yuzu tea enjoyed inside a cosy hanok room on a cold winter day—a cup that warms from the inside out.",
-      "scentNotes": "Yuzu, ginger, lemongrass, honey.",
-      "marketingPoint": "A soft jade-toned Goryeo celadon-style vessel paired with a black wood cap. The British tradition of ginger lemon tea—beloved as a cold remedy—is reimagined through the Korean yuzu tea narrative, bringing a sense of warm hospitality into every kitchen.",
-      "price": "€24.90",
+      "description": "Rain pattering under vivid temple eaves—the meditative richness of Korean sacred spaces.",
+      "concept": "Sitting under the brilliantly painted dancheong eaves of a Korean Buddhist temple as rain begins to fall. The smell of old lacquered wood, incense drifting from inside, and wet stone underfoot—a deeply meditative sensory world.",
+      "scentNotes": "Incense, lacquered wood, rain accord, stone mineral.",
+      "marketingPoint": "A vessel hand-decorated with dancheong-inspired geometric patterns in muted blue, red, and gold captures the visual richness of Korean sacred architecture. A bold, contemplative statement object for design-conscious interiors.",
+      "price": "£24.90",
       "shopifyCheckoutUrlTemplate": "https://YOUR-STORE.myshopify.com/cart/10101010101010:{{qty}}",
-      "image": "assets/Ginger & Citron Warmth.png",
-      "scentProfile": { "fresh": 4, "woody": 2, "green": 2, "citrus": 8, "floral": 1, "warm": 8, "sweet": 6 }
+      "image": "assets/The Rainsound under the Dancheong.png",
+      "images": [
+        "assets/The Rainsound under the Dancheong.png",
+        "assets/The Rainsound under the Dancheong_2.png"
+      ],
+      "scentProfile": { "fresh": 3, "woody": 7, "green": 2, "citrus": 1, "floral": 1, "warm": 8, "sweet": 2 }
     },
     {
       "id": "candle-005",
-      "name": "Quiet Tea Table",
-      "nameKo": "조용한 찻자리",
+      "name": "The Korean Jangdokdae",
+      "nameKo": "장독대",
       "category": "candle",
       "categoryLabel": "Candle",
       "useArea": "kitchen",
@@ -152,9 +188,13 @@
       "concept": "Time for quiet conversation, carried by the roasty warmth of toasted grain and fresh tea leaves—a moment of unhurried calm shared at the kitchen table.",
       "scentNotes": "Roasted brown rice, barley tea, vetiver.",
       "marketingPoint": "A rare grain-forward scent profile in the European market, offering a uniquely gastronomic sensory experience that invites curiosity and stay-a-while comfort.",
-      "price": "€24.90",
+      "price": "£24.90",
       "shopifyCheckoutUrlTemplate": "https://YOUR-STORE.myshopify.com/cart/12121212121212:{{qty}}",
       "image": "assets/The korean Jangdokdae.png",
+      "images": [
+        "assets/The korean Jangdokdae.png",
+        "assets/The korean Jangdokdae_2.png"
+      ],
       "scentProfile": { "fresh": 2, "woody": 5, "green": 2, "citrus": 1, "floral": 1, "warm": 9, "sweet": 3 }
     },
     {
@@ -168,9 +208,13 @@
       "concept": "Deep in the night, the Crown Prince's quiet study beside his chamber. After the rain clears, moonlight filters through the window—wet timber, the lingering scent of freshly ground ink, and a space of quiet intellectual elegance.",
       "scentNotes": "Ink accord (sandalwood & ink), bergamot, thyme, gentle pine.",
       "marketingPoint": "Intellectual texture: a matte black (#222222) ceramic vessel that holds the silence of deep night—designed for those who find beauty in stillness and depth.",
-      "price": "€24.90",
+      "price": "£24.90",
       "shopifyCheckoutUrlTemplate": "https://YOUR-STORE.myshopify.com/cart/13131313131313:{{qty}}",
       "image": "assets/The Crown Prince's Study.png",
+      "images": [
+        "assets/The Crown Prince's Study.png",
+        "assets/The Crown Prince's Study_2.png"
+      ],
       "scentProfile": { "fresh": 2, "woody": 8, "green": 3, "citrus": 2, "floral": 1, "warm": 7, "sweet": 1 }
     },
     {
@@ -183,9 +227,13 @@
       "concept": "The intellectual, cool fragrance that spreads through a scholar's room as freshly ground ink meets hanji paper—a moment of calligraphic focus and quiet discipline.",
       "scentNotes": "Black ink, cedarwood, incense, metallic note.",
       "marketingPoint": "A matte black body adorned with white mother-of-pearl inlaid using the Korean sanggam technique. Connecting British intellectual classic car culture with Korean scholar calligraphy tradition, this design transforms any car interior into an elevated space for contemplation.",
-      "price": "€12.90",
+      "price": "£12.90",
       "shopifyCheckoutUrlTemplate": "https://YOUR-STORE.myshopify.com/cart/11111111111111:{{qty}}",
       "image": "assets/Ink on Hangi.png",
+      "images": [
+        "assets/Ink on Hangi.png",
+        "assets/Ink on Hangi_2.png"
+      ],
       "scentProfile": { "fresh": 3, "woody": 8, "green": 2, "citrus": 1, "floral": 1, "warm": 7, "sweet": 1 }
     },
     {
@@ -198,9 +246,13 @@
       "concept": "The powerful harmony of rugged black pine, shaped by sea winds, and the jewel-like radiance of amber—a bold, deeply resonant pairing built for those who drive with intention.",
       "scentNotes": "Black pine, sandalwood, amber, spiced herbs.",
       "marketingPoint": "A high-gloss black frame accented with the vibrant iridescence of abalone mother-of-pearl. The woody-oriental scent profile favoured by British tastes is reframed through Korea's 'sea forest' concept, completing a luxurious contrast that elevates any car interior.",
-      "price": "€12.90",
+      "price": "£12.90",
       "shopifyCheckoutUrlTemplate": "https://YOUR-STORE.myshopify.com/cart/22222222222222:{{qty}}",
       "image": "assets/Black Pine & Amber Edition.png",
+      "images": [
+        "assets/Black Pine & Amber Edition.png",
+        "assets/Black Pine & Amber Edition_2.png"
+      ],
       "scentProfile": { "fresh": 2, "woody": 9, "green": 4, "citrus": 1, "floral": 1, "warm": 9, "sweet": 2 }
     },
     {
@@ -213,9 +265,13 @@
       "concept": "Where the jade-toned serenity of Goryeo meets an English aristocratic garden. The graceful form of the 12th-century Goryeo crane-cloud inlay (sanggam-unhakmun) converges with the verdant green accord of a Manor House garden. The cool clarity of bamboo and the elegance of plum blossom—both emblems of the Korean scholar's integrity—define the car interior as a space of noble repose.",
       "scentNotes": "Top: Green tea, bergamot — a clear opening as fresh as a dew-covered English garden at dawn / Mid: Plum blossom, bamboo leaf — soft and refined, echoing the elegance of a Goryeo scholar / Base: Moss, cedarwood — a deep, serene forest drydown that lingers like the jade colour of a thousand-year-old celadon.",
       "marketingPoint": "A matte black case engraved with minimal silver mother-of-pearl lines. A gender-neutral luxury air freshener that transforms the car interior into a weighty, elegant VIP lounge—where East and West converge in silence.",
-      "price": "€12.90",
+      "price": "£12.90",
       "shopifyCheckoutUrlTemplate": "https://YOUR-STORE.myshopify.com/cart/33333333333333:{{qty}}",
       "image": "assets/Trace of Inkstone.png",
+      "images": [
+        "assets/Trace of Inkstone.png",
+        "assets/Trace of Inkstone_2.png"
+      ],
       "scentProfile": { "fresh": 6, "woody": 6, "green": 9, "citrus": 5, "floral": 4, "warm": 3, "sweet": 1 }
     }
   ],

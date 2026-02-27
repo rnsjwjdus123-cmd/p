@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Santokki · Cart</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body { background:var(--off-white); }
+    .cart-page { min-height:100vh; padding:3rem 1.5rem; }
+    .cart-top { max-width:860px; margin:0 auto 2rem; }
+    .cart-top a { font-size:0.78rem; color:var(--gray-500); text-decoration:none; }
+    .cart-top a:hover { color:var(--accent); }
+    .cart-top h1 { font-family:var(--font-display); font-size:clamp(1.6rem,3vw,2.4rem); font-weight:400; color:var(--gray-900); margin-top:0.5rem; }
+    .cart-wrap { max-width:860px; margin:0 auto; display:grid; grid-template-columns:1fr minmax(240px,280px); gap:2rem; align-items:start; }
+    .cart-card { background:var(--white); border:1px solid var(--border); border-radius:14px; padding:2rem; }
+    .cart-card h2 { font-family:var(--font-display); font-size:1.05rem; font-weight:500; color:var(--gray-900); margin-bottom:1.2rem; padding-bottom:0.8rem; border-bottom:1px solid var(--border); }
+    .cart-empty { text-align:center; padding:2.5rem 1rem; }
+    .cart-empty p { font-size:0.88rem; color:var(--gray-400); margin-bottom:1.2rem; }
+    .cart-item { display:grid; grid-template-columns:68px 1fr auto; gap:1rem; align-items:center; padding:1rem 0; border-bottom:1px solid var(--border); }
+    .cart-item:last-child { border-bottom:none; }
+    .cart-item img { width:68px; height:68px; object-fit:cover; border-radius:8px; background:var(--green-50); }
+    .cart-item-info { min-width:0; }
+    .cart-item-name { font-size:0.88rem; font-weight:500; color:var(--gray-900); margin-bottom:0.12rem; }
+    .cart-item-cat { font-size:0.7rem; color:var(--gray-400); letter-spacing:0.04em; margin-bottom:0.45rem; }
+    .cart-qty { display:flex; align-items:center; gap:0.45rem; }
+    .qty-btn { width:26px; height:26px; border:1px solid var(--border); background:var(--white); border-radius:6px; font-size:1rem; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--gray-700); transition:background 0.15s,border-color 0.15s; }
+    .qty-btn:hover { background:var(--green-50); border-color:var(--green-300); }
+    .qty-val { font-size:0.88rem; font-weight:500; color:var(--gray-900); min-width:20px; text-align:center; }
+    .cart-item-right { text-align:right; }
+    .cart-item-price { font-size:0.9rem; font-weight:500; color:var(--gray-800); margin-bottom:0.45rem; }
+    .cart-remove { font-size:0.7rem; color:var(--gray-400); background:none; border:none; cursor:pointer; padding:0; text-decoration:underline; text-underline-offset:2px; }
+    .cart-remove:hover { color:#c0392b; }
+    /* Summary card */
+    .sum-row { display:flex; justify-content:space-between; font-size:0.84rem; color:var(--gray-600); margin-bottom:0.55rem; }
+    .sum-row.final { font-size:1rem; font-weight:600; color:var(--gray-900); margin-top:0.8rem; padding-top:0.8rem; border-top:1px solid var(--border); }
+    .cart-checkout-btn { display:block; width:100%; padding:0.95rem; margin-top:1.2rem; font-family:var(--font-body); font-size:0.9rem; font-weight:500; letter-spacing:0.05em; text-align:center; color:var(--white); background:var(--accent); border:none; border-radius:8px; cursor:pointer; text-decoration:none; transition:background 0.2s,transform 0.15s; box-sizing:border-box; }
+    .cart-checkout-btn:hover { background:var(--accent-hover); transform:translateY(-1px); }
+    .cart-checkout-btn.off { background:var(--gray-300); pointer-events:none; }
+    .cart-back { display:block; text-align:center; margin-top:0.9rem; font-size:0.78rem; color:var(--gray-400); text-decoration:none; }
+    .cart-back:hover { color:var(--accent); }
+    @media(max-width:600px){ .cart-wrap { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+<div class="cart-page">
+  <div class="cart-top">
+    <a href="index.html">← Continue Shopping</a>
+    <h1>Your Cart <span id="cart-count" style="font-size:1rem;color:var(--gray-400);font-weight:300;"></span></h1>
+  </div>
+  <div class="cart-wrap">
+    <div class="cart-card">
+      <h2>Items</h2>
+      <div id="cart-list"></div>
+    </div>
+    <div class="cart-card">
+      <h2>Summary</h2>
+      <div class="sum-row"><span>Subtotal</span><span id="sum-sub">£0.00</span></div>
+      <div class="sum-row"><span>Shipping</span><span id="sum-ship">—</span></div>
+      <div class="sum-row final"><span>Total</span><span id="sum-total">£0.00</span></div>
+      <a href="checkout.html" class="cart-checkout-btn off" id="checkout-btn">Proceed to Checkout</a>
+      <a href="index.html" class="cart-back">← Back to Shop</a>
+    </div>
+  </div>
+</div>
+<script>
+  const CART_KEY='santokki_cart';
+  const getCart=()=>JSON.parse(localStorage.getItem(CART_KEY)||'[]');
+  const saveCart=c=>localStorage.setItem(CART_KEY,JSON.stringify(c));
+  const parsePrice=s=>parseFloat(String(s).replace(/[^0-9.]/g,''))||0;
+
+  async function loadProducts(){
+    try{ const r=await fetch('products.json'); const d=await r.json(); return d.products||[]; }
+    catch{ return []; }
+  }
+
+  async function render(){
+    const products=await loadProducts();
+    const cart=getCart();
+    const listEl=document.getElementById('cart-list');
+    listEl.innerHTML='';
+
+    if(!cart.length){
+      document.getElementById('cart-count').textContent='';
+      listEl.innerHTML='<div class="cart-empty"><p>Your cart is empty.</p><a href="index.html" class="btn btn-primary" style="display:inline-block;padding:0.7rem 1.8rem;font-size:0.85rem;border-radius:8px;text-decoration:none">Shop Now</a></div>';
+      document.getElementById('sum-sub').textContent='£0.00';
+      document.getElementById('sum-total').textContent='£0.00';
+      document.getElementById('sum-ship').textContent='—';
+      document.getElementById('checkout-btn').classList.add('off');
+      return;
+    }
+
+    document.getElementById('cart-count').textContent='('+cart.reduce((s,i)=>s+i.qty,0)+')';
+    let subtotal=0;
+
+    cart.forEach((item,idx)=>{
+      const p=products.find(x=>x.id===item.id);
+      if(!p) return;
+      const up=parsePrice(p.price);
+      const lt=up*item.qty;
+      subtotal+=lt;
+      const d=document.createElement('div');
+      d.className='cart-item';
+      d.innerHTML=`
+        <img src="${p.image}" alt="${p.name}" onerror="this.src='https://placehold.co/68x68/f0ede8/2d3e2d?text=S'">
+        <div class="cart-item-info">
+          <div class="cart-item-name">${p.name}</div>
+          <div class="cart-item-cat">${p.categoryLabel||''}</div>
+          <div class="cart-qty">
+            <button class="qty-btn" data-idx="${idx}" data-d="-1">−</button>
+            <span class="qty-val">${item.qty}</span>
+            <button class="qty-btn" data-idx="${idx}" data-d="1">+</button>
+          </div>
+        </div>
+        <div class="cart-item-right">
+          <div class="cart-item-price">£${lt.toFixed(2)}</div>
+          <button class="cart-remove" data-idx="${idx}">Remove</button>
+        </div>`;
+      listEl.appendChild(d);
+    });
+
+    listEl.querySelectorAll('.qty-btn').forEach(b=>{
+      b.addEventListener('click',()=>{
+        const c=getCart(); const i=parseInt(b.dataset.idx); const delta=parseInt(b.dataset.d);
+        c[i].qty=Math.max(1,c[i].qty+delta);
+        saveCart(c); render();
+      });
+    });
+
+    listEl.querySelectorAll('.cart-remove').forEach(b=>{
+      b.addEventListener('click',()=>{
+        const c=getCart(); c.splice(parseInt(b.dataset.idx),1);
+        saveCart(c); render();
+      });
+    });
+
+    const ship=subtotal>=50?0:4.95;
+    document.getElementById('sum-sub').textContent='£'+subtotal.toFixed(2);
+    document.getElementById('sum-ship').textContent=ship===0?'Free':'£'+ship.toFixed(2);
+    document.getElementById('sum-total').textContent='£'+(subtotal+ship).toFixed(2);
+    document.getElementById('checkout-btn').classList.remove('off');
+  }
+
+  render();
+</script>
+</body>
+</html>
