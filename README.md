@@ -31,7 +31,7 @@
 
 | 폴더/파일 | 용도 |
 |-----------|------|
-| **santokki/dashboard.html** | 📊 통계 대시보드 — Firestore `quiz_results` 실시간 (로컬 서버 실행 후 `/santokki/dashboard.html` 접속) |
+| **santokki/dashboard.html** | 📊 통계 대시보드 — Firestore `quiz_results` 실시간 |
 | **santokki/quiz/** | 15문항 시향 퀴즈 페이지 (Firebase Hosting 배포) |
 | **santokki/n8n-docker/** | n8n Docker 설정, 워크플로우 JSON (v4, v5), Firestore·ManyChat 연동 |
 | **santokki/docs/** | 설문/매칭 계획서, 제품 라인업, 회의록, 퀴즈 질문 목록, 진단 리포트 등 문서 |
@@ -43,11 +43,15 @@
 
 ---
 
-## 🔗 연결 관계
+## 🔗 연결 관계 · 배포 주소
+
+| 용도 | URL |
+|------|-----|
+| **대시보드** (시향 테스트 통계) | **https://santokki-f7c72.web.app/dashboard.html** |
+| 퀴즈 (Firebase Hosting) | https://santokki-f7c72.web.app (루트) |
 
 - 쇼핑몰 상품 상세 URL은 ManyChat DM·퀴즈 결과에서 “구매 링크”로 사용됩니다.
 - 제품 ID·이름은 `p/products.json`과 santokki 쪽 매칭 로직이 맞아야 합니다.
-- 퀴즈 배포 URL: `https://santokki-f7c72.web.app` (Firebase Hosting)
 
 ---
 

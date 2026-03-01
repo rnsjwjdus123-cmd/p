@@ -44,6 +44,7 @@ Firestore 업데이트 (dm_sent: true)
 ```
 santokki/
 ├── dashboard.html                 ← 📊 통계 대시보드 (Firestore quiz_results 실시간)
+│   → 배포 주소: https://santokki-f7c72.web.app/dashboard.html
 ├── dashboard_demo.html            ← 대시보드 데모 (목업 데이터, Firebase 불필요)
 ├── quiz/                          ← 퀴즈 페이지 (Firebase Hosting)
 │   ├── index.html                 # 15문항 퀴즈 + 결과 페이지
@@ -90,6 +91,8 @@ firebase deploy --only hosting
 → `https://santokki-f7c72.web.app` 배포됨
 
 ### 4. 대시보드 (통계) 보기
+
+- **배포 주소 (공용):** **https://santokki-f7c72.web.app/dashboard.html**
 
 Firestore `quiz_results` 실시간 통계를 보려면:
 
