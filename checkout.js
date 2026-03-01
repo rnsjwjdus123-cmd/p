@@ -21,7 +21,7 @@ function parsePriceToNumber(priceStr) {
 }
 
 function formatEuro(value) {
-  return new Intl.NumberFormat('en-IE', { style: 'currency', currency: 'EUR' }).format(value);
+  return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(value);
 }
 
 function renderCheckoutShell(initialQty) {

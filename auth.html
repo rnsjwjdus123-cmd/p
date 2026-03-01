@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Santokki · Sign In</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body { background: var(--off-white); }
+    .auth-page { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:2rem; }
+    .auth-card { background:var(--white); border:1px solid var(--border); border-radius:16px; padding:2.8rem 2.4rem; width:100%; max-width:400px; box-shadow:0 4px 32px rgba(0,0,0,0.06); }
+    .auth-brand { display:flex; flex-direction:column; align-items:center; gap:0.3rem; margin-bottom:2rem; text-decoration:none; }
+    .auth-brand img { width:44px; height:44px; object-fit:contain; }
+    .auth-brand span { font-family:var(--font-display); font-size:1.3rem; font-weight:400; color:var(--gray-900); letter-spacing:0.04em; }
+    .auth-tabs { display:flex; border-bottom:1px solid var(--border); margin-bottom:1.8rem; }
+    .auth-tab { flex:1; padding:0.6rem 0; font-family:var(--font-body); font-size:0.78rem; font-weight:500; letter-spacing:0.09em; text-transform:uppercase; color:var(--gray-400); background:none; border:none; border-bottom:2px solid transparent; margin-bottom:-1px; cursor:pointer; transition:color 0.2s,border-color 0.2s; }
+    .auth-tab.active { color:var(--accent); border-bottom-color:var(--accent); }
+    .auth-panel { display:none; }
+    .auth-panel.active { display:block; }
+    .auth-field { margin-bottom:1rem; }
+    .auth-field label { display:block; font-size:0.68rem; font-weight:500; letter-spacing:0.1em; text-transform:uppercase; color:var(--gray-500); margin-bottom:0.35rem; }
+    .auth-field input { width:100%; padding:0.72rem 0.9rem; font-family:var(--font-body); font-size:0.88rem; color:var(--gray-900); background:var(--off-white); border:1px solid var(--border); border-radius:8px; outline:none; box-sizing:border-box; transition:border-color 0.2s,box-shadow 0.2s; }
+    .auth-field input:focus { border-color:var(--green-400); box-shadow:0 0 0 3px rgba(86,140,94,0.1); }
+    .auth-submit { width:100%; margin-top:0.4rem; padding:0.88rem; font-family:var(--font-body); font-size:0.88rem; font-weight:500; letter-spacing:0.05em; color:var(--white); background:var(--accent); border:none; border-radius:8px; cursor:pointer; transition:background 0.2s,transform 0.15s; }
+    .auth-submit:hover { background:var(--accent-hover); transform:translateY(-1px); }
+    .auth-msg { margin-top:0.9rem; padding:0.7rem 0.9rem; border-radius:8px; font-size:0.8rem; text-align:center; display:none; }
+    .auth-msg.ok { background:#f0f7f1; color:var(--accent); border:1px solid var(--green-200); display:block; }
+    .auth-msg.err { background:#fff0f0; color:#c0392b; border:1px solid #fcc; display:block; }
+    .auth-logged { display:none; text-align:center; }
+    .auth-logged p { font-size:0.9rem; color:var(--gray-700); margin-bottom:1.2rem; line-height:1.6; }
+    .auth-logged strong { color:var(--accent); }
+    .auth-back { display:block; text-align:center; margin-top:1.4rem; font-size:0.78rem; color:var(--gray-400); text-decoration:none; }
+    .auth-back:hover { color:var(--accent); }
+  </style>
+</head>
+<body>
+<div class="auth-page">
+  <div class="auth-card">
+    <a href="index.html" class="auth-brand">
+      <img src="assets/products/santokkilogo.png" alt="Santokki">
+      <span>Santokki</span>
+    </a>
+
+    <div class="auth-logged" id="auth-logged">
+      <p>Signed in as<br><strong id="logged-email"></strong></p>
+      <button class="auth-submit" id="logout-btn" type="button">Sign Out</button>
+    </div>
+
+    <div id="auth-forms">
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-tab="login" type="button">Sign In</button>
+        <button class="auth-tab" data-tab="join" type="button">Join</button>
+      </div>
+      <div class="auth-panel active" id="panel-login">
+        <form id="login-form" novalidate>
+          <div class="auth-field"><label for="l-email">Email</label><input type="email" id="l-email" placeholder="you@example.com" autocomplete="email" required></div>
+          <div class="auth-field"><label for="l-pw">Password</label><input type="password" id="l-pw" placeholder="••••••••" autocomplete="current-password" required></div>
+          <button class="auth-submit" type="submit">Sign In</button>
+          <div class="auth-msg" id="l-msg"></div>
+        </form>
+      </div>
+      <div class="auth-panel" id="panel-join">
+        <form id="join-form" novalidate>
+          <div class="auth-field"><label for="j-email">Email</label><input type="email" id="j-email" placeholder="you@example.com" autocomplete="email" required></div>
+          <div class="auth-field"><label for="j-pw">Password</label><input type="password" id="j-pw" placeholder="Min. 6 characters" autocomplete="new-password" required></div>
+          <button class="auth-submit" type="submit">Create Account</button>
+          <div class="auth-msg" id="j-msg"></div>
+        </form>
+      </div>
+    </div>
+
+    <a href="index.html" class="auth-back">← Back to shop</a>
+  </div>
+</div>
+<script>
+  const SK='santokki_session', UK='santokki_users';
+  const getUsers=()=>JSON.parse(localStorage.getItem(UK)||'[]');
+  const saveUsers=u=>localStorage.setItem(UK,JSON.stringify(u));
+  const getSession=()=>localStorage.getItem(SK);
+  const setSession=e=>localStorage.setItem(SK,e);
+  const clearSession=()=>localStorage.removeItem(SK);
+  const showMsg=(el,t,c)=>{el.textContent=t;el.className='auth-msg '+c;};
+
+  const sess=getSession();
+  if(sess){
+    document.getElementById('auth-forms').style.display='none';
+    document.getElementById('auth-logged').style.display='block';
+    document.getElementById('logged-email').textContent=sess;
+  }
+
+  document.querySelectorAll('.auth-tab').forEach(t=>{
+    t.addEventListener('click',()=>{
+      document.querySelectorAll('.auth-tab').forEach(x=>x.classList.remove('active'));
+      document.querySelectorAll('.auth-panel').forEach(x=>x.classList.remove('active'));
+      t.classList.add('active');
+      document.getElementById('panel-'+t.dataset.tab).classList.add('active');
+    });
+  });
+
+  document.getElementById('login-form').addEventListener('submit',e=>{
+    e.preventDefault();
+    const email=document.getElementById('l-email').value.trim();
+    const pw=document.getElementById('l-pw').value;
+    const m=document.getElementById('l-msg');
+    if(!email||!pw) return showMsg(m,'Please fill in all fields.','err');
+    const user=getUsers().find(u=>u.email===email&&u.pw===pw);
+    if(!user) return showMsg(m,'Email or password is incorrect.','err');
+    setSession(email);
+    showMsg(m,'Welcome back! Redirecting…','ok');
+    setTimeout(()=>window.location.href='index.html',1000);
+  });
+
+  document.getElementById('join-form').addEventListener('submit',e=>{
+    e.preventDefault();
+    const email=document.getElementById('j-email').value.trim();
+    const pw=document.getElementById('j-pw').value;
+    const m=document.getElementById('j-msg');
+    if(!email||!pw) return showMsg(m,'Please fill in all fields.','err');
+    if(pw.length<6) return showMsg(m,'Password must be at least 6 characters.','err');
+    const users=getUsers();
+    if(users.find(u=>u.email===email)) return showMsg(m,'This email is already registered.','err');
+    users.push({email,pw});
+    saveUsers(users);
+    setSession(email);
+    showMsg(m,'Account created! Redirecting…','ok');
+    setTimeout(()=>window.location.href='index.html',1200);
+  });
+
+  document.getElementById('logout-btn').addEventListener('click',()=>{
+    clearSession();
+    window.location.reload();
+  });
+</script>
+</body>
+</html>
