@@ -1,0 +1,43 @@
+services:
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:latest
+    container_name: n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      # 기본 설정
+      - N8N_HOST=${N8N_HOST:-localhost}
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=${N8N_PROTOCOL:-http}
+      - NODE_ENV=production
+
+      # 타임존 (한국)
+      - GENERIC_TIMEZONE=Asia/Seoul
+      - TZ=Asia/Seoul
+
+      # 보안 - 첫 실행 후 반드시 변경하세요
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=${N8N_USER:-admin}
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_PASSWORD:-changeme123!}
+
+      # Webhook URL (로컬 테스트용)
+      - WEBHOOK_URL=${WEBHOOK_URL:-http://localhost:5678/}
+
+      # 실행 기록 보관 (일수)
+      - EXECUTIONS_DATA_PRUNE=true
+      - EXECUTIONS_DATA_MAX_AGE=336
+
+      # 외부 패키지 허용 (Code 노드에서 npm 사용)
+      - NODE_FUNCTION_ALLOW_EXTERNAL=*
+      # 빌트인 모듈 허용 (crypto, util 등)
+      - NODE_FUNCTION_ALLOW_BUILTIN=*
+
+    volumes:
+      - n8n_data:/home/node/.n8n
+      # firebase-key.json을 n8n에서 접근 가능하게 마운트
+      - ./firebase-key.json:/home/node/.n8n/firebase-key.json:ro
+
+volumes:
+  n8n_data:
+    driver: local

@@ -1,0 +1,2254 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+
+    <meta http-equiv="Pragma" content="no-cache">
+
+    <meta http-equiv="Expires" content="0">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Santokki Fragrance Quiz - Find Your Perfect Scent</title>
+
+    <!-- Google Fonts -->
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Outfit:wght@400;500;600&family=Noto+Sans+KR:wght@400;500;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Firebase SDK -->
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        * {
+
+            margin: 0;
+
+            padding: 0;
+
+            box-sizing: border-box;
+
+        }
+
+        body {
+
+            font-family: 'Outfit', sans-serif;
+
+            background-color: #FAFAF9;
+
+            color: #1C1917;
+
+            line-height: 1.6;
+
+        }
+
+        /* Header */
+
+        .header {
+
+            background: linear-gradient(135deg, #FAFAF9 0%, #F7F2E9 100%);
+
+            padding: 2rem 1rem;
+
+            text-align: center;
+
+            border-bottom: 1px solid #E7E5E4;
+
+            margin-bottom: 2rem;
+
+        }
+
+        .header h1 {
+
+            font-family: 'Cormorant Garamond', serif;
+
+            font-size: 2.5rem;
+
+            font-weight: 700;
+
+            color: #1E5C3A;
+
+            margin-bottom: 0.5rem;
+
+            letter-spacing: 1px;
+
+        }
+
+        .header p {
+
+            font-size: 0.95rem;
+
+            color: #57534E;
+
+            font-weight: 500;
+
+        }
+
+        /* Container */
+
+        .container {
+
+            max-width: 600px;
+
+            margin: 0 auto;
+
+            padding: 0 1rem;
+
+        }
+
+        /* Progress Bar */
+
+        .progress-container {
+
+            margin-bottom: 2rem;
+
+        }
+
+        .progress-bar {
+
+            width: 100%;
+
+            height: 4px;
+
+            background-color: #E7E5E4;
+
+            border-radius: 2px;
+
+            overflow: hidden;
+
+        }
+
+        .progress-fill {
+
+            height: 100%;
+
+            background-color: #1E5C3A;
+
+            width: 0%;
+
+            transition: width 0.3s ease;
+
+        }
+
+        .progress-text {
+
+            font-size: 0.85rem;
+
+            color: #57534E;
+
+            margin-top: 0.5rem;
+
+            text-align: right;
+
+        }
+
+        /* Question Section */
+
+        .question-section {
+
+            background: white;
+
+            border-radius: 12px;
+
+            padding: 2rem;
+
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+
+            margin-bottom: 2rem;
+
+            min-height: 400px;
+
+            display: none;
+
+            animation: fadeIn 0.4s ease;
+
+        }
+
+        .question-section.active {
+
+            display: block;
+
+        }
+
+        @keyframes fadeIn {
+
+            from {
+
+                opacity: 0;
+
+                transform: translateY(10px);
+
+            }
+
+            to {
+
+                opacity: 1;
+
+                transform: translateY(0);
+
+            }
+
+        }
+
+        .question-number {
+
+            font-size: 0.85rem;
+
+            color: #1E5C3A;
+
+            font-weight: 600;
+
+            text-transform: uppercase;
+
+            letter-spacing: 1px;
+
+            margin-bottom: 0.5rem;
+
+        }
+
+        .question-text {
+
+            font-family: 'Cormorant Garamond', serif;
+
+            font-size: 1.8rem;
+
+            font-weight: 600;
+
+            color: #1C1917;
+
+            margin-bottom: 2rem;
+
+            line-height: 1.4;
+
+        }
+
+        /* Answer Options */
+
+        .options-container {
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 1rem;
+
+        }
+
+        .option-button {
+
+            padding: 1.2rem;
+
+            border: 2px solid #E7E5E4;
+
+            background: white;
+
+            border-radius: 8px;
+
+            cursor: pointer;
+
+            text-align: left;
+
+            transition: all 0.2s ease;
+
+            font-family: 'Outfit', sans-serif;
+
+            font-size: 1rem;
+
+            color: #1C1917;
+
+        }
+
+        .option-button:hover {
+
+            border-color: #1E5C3A;
+
+            background-color: #F7F2E9;
+
+        }
+
+        .option-button.selected {
+
+            border-color: #1E5C3A;
+
+            background-color: #1E5C3A;
+
+            color: white;
+
+            font-weight: 600;
+
+        }
+
+        .option-letter {
+
+            display: inline-block;
+
+            width: 28px;
+
+            height: 28px;
+
+            line-height: 28px;
+
+            background-color: #E7E5E4;
+
+            border-radius: 50%;
+
+            text-align: center;
+
+            margin-right: 1rem;
+
+            font-weight: 600;
+
+            font-size: 0.9rem;
+
+        }
+
+        .option-button.selected .option-letter {
+
+            background-color: rgba(255, 255, 255, 0.3);
+
+        }
+
+        /* Navigation Buttons */
+
+        .button-container {
+
+            display: flex;
+
+            gap: 1rem;
+
+            margin-top: 2rem;
+
+            justify-content: space-between;
+
+        }
+
+        .btn {
+
+            padding: 1rem 2rem;
+
+            border: none;
+
+            border-radius: 8px;
+
+            cursor: pointer;
+
+            font-family: 'Outfit', sans-serif;
+
+            font-size: 1rem;
+
+            font-weight: 600;
+
+            transition: all 0.2s ease;
+
+            touch-action: manipulation;
+
+            -webkit-tap-highlight-color: transparent;
+
+        }
+
+        .btn-primary {
+
+            background-color: #1E5C3A;
+
+            color: white;
+
+            flex: 1;
+
+        }
+
+        .btn-primary:hover:not(:disabled) {
+
+            background-color: #174529;
+
+            transform: translateY(-2px);
+
+            box-shadow: 0 4px 12px rgba(30, 92, 58, 0.2);
+
+        }
+
+        .btn-primary:disabled {
+
+            opacity: 0.5;
+
+            cursor: not-allowed;
+
+        }
+
+        .btn-secondary {
+
+            background-color: white;
+
+            color: #1E5C3A;
+
+            border: 2px solid #1E5C3A;
+
+            flex: 0.5;
+
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+
+            background-color: #F7F2E9;
+
+        }
+
+        .btn-secondary:disabled {
+
+            opacity: 0.3;
+
+            cursor: not-allowed;
+
+        }
+
+        /* Result Section */
+
+        .result-section {
+
+            display: none;
+
+            animation: fadeIn 0.4s ease;
+
+        }
+
+        .result-section.active {
+
+            display: block;
+
+        }
+
+        .result-card {
+
+            background: white;
+
+            border-radius: 12px;
+
+            padding: 2.5rem;
+
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+
+            text-align: center;
+
+            margin-bottom: 2rem;
+
+        }
+
+        .result-icon {
+
+            font-size: 3.5rem;
+
+            margin-bottom: 1rem;
+
+        }
+
+        .result-title {
+
+            font-family: 'Cormorant Garamond', serif;
+
+            font-size: 2.2rem;
+
+            font-weight: 700;
+
+            color: #1C1917;
+
+            margin-bottom: 0.5rem;
+
+        }
+
+        .result-title-en {
+
+            font-size: 1rem;
+
+            color: #57534E;
+
+            margin-bottom: 1.5rem;
+
+            font-weight: 400;
+
+        }
+
+        .result-description {
+
+            font-size: 1rem;
+
+            color: #44403C;
+
+            line-height: 1.8;
+
+            margin-bottom: 1.5rem;
+
+        }
+
+        .scent-notes {
+
+            background-color: #F7F2E9;
+
+            padding: 1.5rem;
+
+            border-radius: 8px;
+
+            margin-bottom: 1.5rem;
+
+        }
+
+        .scent-notes-label {
+
+            font-size: 0.85rem;
+
+            font-weight: 600;
+
+            color: #57534E;
+
+            text-transform: uppercase;
+
+            letter-spacing: 1px;
+
+            margin-bottom: 0.75rem;
+
+        }
+
+        .scent-notes-list {
+
+            display: flex;
+
+            flex-wrap: wrap;
+
+            gap: 0.5rem;
+
+            justify-content: center;
+
+        }
+
+        .scent-tag {
+
+            background-color: white;
+
+            padding: 0.5rem 1rem;
+
+            border-radius: 20px;
+
+            font-size: 0.9rem;
+
+            color: #1C1917;
+
+            border: 1px solid #E7E5E4;
+
+        }
+
+        .premium-section {
+
+            background: linear-gradient(135deg, #F7F2E9 0%, #FAFAF9 100%);
+
+            padding: 2rem;
+
+            border-radius: 12px;
+
+            margin-bottom: 2rem;
+
+            border-left: 4px solid #1E5C3A;
+
+        }
+
+        .premium-label {
+
+            font-size: 0.75rem;
+
+            color: #1E5C3A;
+
+            font-weight: 700;
+
+            text-transform: uppercase;
+
+            letter-spacing: 1.5px;
+
+            margin-bottom: 0.5rem;
+
+        }
+
+        .premium-title {
+
+            font-family: 'Cormorant Garamond', serif;
+
+            font-size: 1.5rem;
+
+            font-weight: 600;
+
+            color: #1C1917;
+
+            margin-bottom: 0.5rem;
+
+        }
+
+        .premium-text {
+
+            font-size: 0.95rem;
+
+            color: #44403C;
+
+            line-height: 1.6;
+
+        }
+
+        .discover-btn {
+
+            display: inline-block;
+
+            margin-top: 1.5rem;
+
+            padding: 1rem 2.5rem;
+
+            background-color: #1E5C3A;
+
+            color: white;
+
+            text-decoration: none;
+
+            border-radius: 8px;
+
+            font-weight: 600;
+
+            transition: all 0.2s ease;
+
+        }
+
+        .discover-btn:hover {
+
+            background-color: #174529;
+
+            transform: translateY(-2px);
+
+            box-shadow: 0 4px 12px rgba(30, 92, 58, 0.2);
+
+        }
+
+        /* Loading State */
+
+        .loading {
+
+            text-align: center;
+
+            padding: 2rem;
+
+            color: #57534E;
+
+        }
+
+        .spinner {
+
+            width: 40px;
+
+            height: 40px;
+
+            border: 3px solid #E7E5E4;
+
+            border-top-color: #1E5C3A;
+
+            border-radius: 50%;
+
+            animation: spin 0.6s linear infinite;
+
+            margin: 0 auto 1rem;
+
+        }
+
+        @keyframes spin {
+
+            to {
+
+                transform: rotate(360deg);
+
+            }
+
+        }
+
+        /* Korean Text */
+
+        .korean-text {
+
+            font-family: 'Noto Sans KR', sans-serif;
+
+            font-weight: 500;
+
+        }
+
+        /* Mobile Responsive */
+
+        @media (max-width: 600px) {
+
+            .header h1 {
+
+                font-size: 2rem;
+
+            }
+
+            .question-section {
+
+                padding: 1.5rem;
+
+                min-height: auto;
+
+            }
+
+            .question-text {
+
+                font-size: 1.4rem;
+
+            }
+
+            .result-card {
+
+                padding: 1.5rem;
+
+            }
+
+            .result-title {
+
+                font-size: 1.8rem;
+
+            }
+
+            .button-container {
+
+                flex-direction: column-reverse;
+
+            }
+
+            .btn-secondary {
+
+                flex: 1;
+
+            }
+
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <div class="header">
+
+        <h1>Santokki</h1>
+
+        <p>Discover Your Perfect Fragrance</p>
+
+    </div>
+
+    <div class="container">
+
+        <!-- Progress Bar -->
+
+        <div class="progress-container">
+
+            <div class="progress-bar">
+
+                <div class="progress-fill" id="progressFill"></div>
+
+            </div>
+
+            <div class="progress-text"><span id="currentQuestion">1</span> / 15</div>
+
+        </div>
+
+        <!-- Quiz Questions -->
+
+        <div id="quiz-content">
+
+            <!-- Q1: Gender -->
+
+            <div class="question-section active" data-question="1">
+
+                <div class="question-number">Question 1 of 15</div>
+
+                <div class="question-text">What's your gender?</div>
+
+                <div class="options-container">
+
+                    <button class="option-button" data-answer="female">
+
+                        <span class="option-letter">A</span>Female
+
+                    </button>
+
+                    <button class="option-button" data-answer="male">
+
+                        <span class="option-letter">B</span>Male
+
+                    </button>
+
+                    <button class="option-button" data-answer="non_binary">
+
+                        <span class="option-letter">C</span>Non-binary
+
+                    </button>
+
+                    <button class="option-button" data-answer="prefer_not">
+
+                        <span class="option-letter">D</span>Prefer not to say
+
+                    </button>
+
+                </div>
+
+                <div class="button-container">
+
+                    <button class="btn btn-secondary" id="btnPrev1" disabled>Back</button>
+
+                    <button class="btn btn-primary" id="btnNext1" disabled onclick="nextQuestion()">Next</button>
+
+                </div>
+
+            </div>
+
+            <!-- Q2: Age -->
+
+            <div class="question-section" data-question="2">
+
+                <div class="question-number">Question 2 of 15</div>
+
+                <div class="question-text">What's your age group?</div>
+
+                <div class="options-container">
+
+                    <button class="option-button" data-answer="under_20">
+
+                        <span class="option-letter">A</span>Under 20
+
+                    </button>
+
+                    <button class="option-button" data-answer="20s">
+
+                        <span class="option-letter">B</span>20-29
+
+                    </button>
+
+                    <button class="option-button" data-answer="30s">
+
+                        <span class="option-letter">C</span>30-39
+
+                    </button>
+
+                    <button class="option-button" data-answer="40plus">
+
+                        <span class="option-letter">D</span>40+
+
+                    </button>
+
+                </div>
+
+                <div class="button-container">
+
+                    <button class="btn btn-secondary" onclick="previousQuestion()">Back</button>
+
+                    <button class="btn btn-primary" id="btnNext2" disabled onclick="nextQuestion()">Next</button>
+
+                </div>
+
+            </div>
+
+            <!-- Q3: Space Selection -->
+
+            <div class="question-section" data-question="3">
+
+                <div class="question-number">Question 3 of 15</div>
+
+                <div class="question-text">Which space would you like to add fragrance to?</div>
+
+                <div class="options-container">
+
+                    <button class="option-button" data-answer="living_bedroom">
+
+                        <span class="option-letter">A</span>Living room or bedroom
+
+                    </button>
+
+                    <button class="option-button" data-answer="kitchen">
+
+                        <span class="option-letter">B</span>Kitchen or dining area
+
+                    </button>
+
+                    <button class="option-button" data-answer="car">
+
+                        <span class="option-letter">C</span>Car
+
+                    </button>
+
+                </div>
+
+                <div class="button-container">
+
+                    <button class="btn btn-secondary" onclick="previousQuestion()">Back</button>
+
+                    <button class="btn btn-primary" id="btnNext3" disabled onclick="nextQuestion()">Next</button>
+
+                </div>
+
+            </div>
+
+            <!-- Q4: Weekend morning -->
+
+            <div class="question-section" data-question="4">
+
+                <div class="question-number">Question 4 of 15</div>
+
+                <div class="question-text">On a weekend morning, the first thing you'd want to do is...</div>
+
+                <div class="options-container">
+
+                    <button class="option-button" data-answer="A">
+
+                        <span class="option-letter">A</span>Walk through a garden full of blooming flowers
+
+                    </button>
+
+                    <button class="option-button" data-answer="B">
+
+                        <span class="option-letter">B</span>Hike through a misty forest trail
+
+                    </button>
+
+                    <button class="option-button" data-answer="C">
+
+                        <span class="option-letter">C</span>Swim in the ocean or take a cold shower
+
+                    </button>
+
+                    <button class="option-button" data-answer="D">
+
+                        <span class="option-letter">D</span>Read quietly in a dimly lit room
+
+                    </button>
+
+                    <button class="option-button" data-answer="E">
+
+                        <span class="option-letter">E</span>Sit by the fireplace with hot tea
+
+                    </button>
+
+                </div>
+
+                <div class="button-container">
+
+                    <button class="btn btn-secondary" onclick="previousQuestion()">Back</button>
+
+                    <button class="btn btn-primary" id="btnNext4" disabled onclick="nextQuestion()">Next</button>
+
+                </div>
+
+            </div>
+
+            <!-- Q5: Travel destination -->
+
+            <div class="question-section" data-question="5">
+
+                <div class="question-number">Question 5 of 15</div>
+
+                <div class="question-text">Your ideal travel destination?</div>
+
+                <div class="options-container">
+
+                    <button class="option-button" data-answer="A">
+
+                        <span class="option-letter">A</span>Provence lavender fields in spring
+
+                    </button>
+
+                    <button class="option-button" data-answer="B">
+
+                        <span class="option-letter">B</span>A moss-covered cabin in a Scandinavian forest
+
+                    </button>
+
+                    <button class="option-button" data-answer="C">
+
+                        <span class="option-letter">C</span>Mediterranean coast with sea breeze and citrus
+
+                    </button>
+
+                    <button class="option-button" data-answer="D">
+
+                        <span class="option-letter">D</span>An ancient library in a stone-walled English manor
+
+                    </button>
+
+                    <button class="option-button" data-answer="E">
+
+                        <span class="option-letter">E</span>A cozy mountain chalet with a crackling fire
+
+                    </button>
+
+                </div>
+
+                <div class="button-container">
+
+                    <button class="btn btn-secondary" onclick="previousQuestion()">Back</button>
+
+                    <button class="btn btn-primary" id="btnNext5" disabled onclick="nextQuestion()">Next</button>
+
+                </div>
+
+            </div>
+
+            <!-- Q6: Room item -->
+
+            <div class="question-section" data-question="6">
+
+                <div class="question-number">Question 6 of 15</div>
+
+                <div class="question-text">If you could place one item in your room, it would be...</div>
+
+                <div class="options-container">
+
+                    <button class="option-button" data-answer="A">
+
+                        <span class="option-letter">A</span>A bouquet of fresh peonies
+
+                    </button>
+
+                    <button class="option-button" data-answer="B">
+
+                        <span class="option-letter">B</span>A piece of driftwood from the forest
+
+                    </button>
+
+                    <button class="option-button" data-answer="C">
+
+                        <span class="option-letter">C</span>A potted lemon tree
+
+                    </button>
+
+                    <button class="option-button" data-answer="D">
+
+                        <span class="option-letter">D</span>An antique inkwell and calligraphy set
+
+                    </button>
+
+                    <button class="option-button" data-answer="E">
+
+                        <span class="option-letter">E</span>A vintage leather-bound journal
+
+                    </button>
+
+                </div>
+
+                <div class="button-container">
+
+                    <button class="btn btn-secondary" onclick="previousQuestion()">Back</button>
+
+                    <button class="btn btn-primary" id="btnNext6" disabled onclick="nextQuestion()">Next</button>
+
+                </div>
+
+            </div>
+
+            <!-- Q7: Weather -->
+
+            <div class="question-section" data-question="7">
+
+                <div class="question-number">Question 7 of 15</div>
+
+                <div class="question-text">The weather you feel most at peace in?</div>
+
+                <div class="options-container">
+
+                    <button class="option-button" data-answer="A">
+
+                        <span class="option-letter">A</span>A warm spring day with cherry blossoms falling
+
+                    </button>
+
+                    <button class="option-button" data-answer="B">
+
+                        <span class="option-letter">B</span>Right after a rainfall, with wet earth scent
+
+                    </button>
+
+                    <button class="option-button" data-answer="C">
+
+                        <span class="option-letter">C</span>A bright, breezy summer day by the sea
+
+                    </button>
+
+                    <button class="option-button" data-answer="D">
+
+                        <span class="option-letter">D</span>A still, foggy autumn morning
+
+                    </button>
+
+                    <button class="option-button" data-answer="E">
+
+                        <span class="option-letter">E</span>A cold winter night with snow falling softly
+
+                    </button>
+
+                </div>
+
+                <div class="button-container">
+
+                    <button class="btn btn-secondary" onclick="previousQuestion()">Back</button>
+
+                    <button class="btn btn-primary" id="btnNext7" disabled onclick="nextQuestion()">Next</button>
+
+                </div>
+
+            </div>
+
+            <!-- Q8: Music -->
+
+            <div class="question-section" data-question="8">
+
+                <div class="question-number">Question 8 of 15</div>
+
+                <div class="question-text">What kind of music sets the mood for you?</div>
+
+                <div class="options-container">
+
+                    <button class="option-button" data-answer="A">
+
+                        <span class="option-letter">A</span>Soft jazz vocals
+
+                    </button>
+
+                    <button class="option-button" data-answer="B">
+
+                        <span class="option-letter">B</span>Ambient nature sounds (rain, birds)
+
+                    </button>
+
+                    <button class="option-button" data-answer="C">
+
+                        <span class="option-letter">C</span>Upbeat bossa nova
+
+                    </button>
+
+                    <button class="option-button" data-answer="D">
+
+                        <span class="option-letter">D</span>Deep cello or piano solo
+
+                    </button>
+
+                    <button class="option-button" data-answer="E">
+
+                        <span class="option-letter">E</span>Lo-fi beats by candlelight
+
+                    </button>
+
+                </div>
+
+                <div class="button-container">
+
+                    <button class="btn btn-secondary" onclick="previousQuestion()">Back</button>
+
+                    <button class="btn btn-primary" id="btnNext8" disabled onclick="nextQuestion()">Next</button>
+
+                </div>
+
+            </div>
+
+            <!-- Q9: Fabric -->
+
+            <div class="question-section" data-question="9">
+
+                <div class="question-number">Question 9 of 15</div>
+
+                <div class="question-text">Pick a fabric that speaks to you.</div>
+
+                <div class="options-container">
+
+                    <button class="option-button" data-answer="A">
+
+                        <span class="option-letter">A</span>Silk with floral embroidery
+
+                    </button>
+
+                    <button class="option-button" data-answer="B">
+
+                        <span class="option-letter">B</span>Raw, undyed linen
+
+                    </button>
+
+                    <button class="option-button" data-answer="C">
+
+                        <span class="option-letter">C</span>Crisp white cotton
+
+                    </button>
+
+                    <button class="option-button" data-answer="D">
+
+                        <span class="option-letter">D</span>Dark handmade Hanji (Korean paper)
+
+                    </button>
+
+                    <button class="option-button" data-answer="E">
+
+                        <span class="option-letter">E</span>Thick wool with a smoky scent
+
+                    </button>
+
+                </div>
+
+                <div class="button-container">
+
+                    <button class="btn btn-secondary" onclick="previousQuestion()">Back</button>
+
+                    <button class="btn btn-primary" id="btnNext9" disabled onclick="nextQuestion()">Next</button>
+
+                </div>
+
+            </div>
+
+            <!-- Q10: Dinner setting -->
+
+            <div class="question-section" data-question="10">
+
+                <div class="question-number">Question 10 of 15</div>
+
+                <div class="question-text">Your ideal dinner setting?</div>
+
+                <div class="options-container">
+
+                    <button class="option-button" data-answer="A">
+
+                        <span class="option-letter">A</span>A garden terrace surrounded by roses
+
+                    </button>
+
+                    <button class="option-button" data-answer="B">
+
+                        <span class="option-letter">B</span>A rustic table in a forest clearing
+
+                    </button>
+
+                    <button class="option-button" data-answer="C">
+
+                        <span class="option-letter">C</span>A seafood feast at a seaside restaurant
+
+                    </button>
+
+                    <button class="option-button" data-answer="D">
+
+                        <span class="option-letter">D</span>A traditional Korean tea ceremony room
+
+                    </button>
+
+                    <button class="option-button" data-answer="E">
+
+                        <span class="option-letter">E</span>A candlelit wine cellar
+
+                    </button>
+
+                </div>
+
+                <div class="button-container">
+
+                    <button class="btn btn-secondary" onclick="previousQuestion()">Back</button>
+
+                    <button class="btn btn-primary" id="btnNext10" disabled onclick="nextQuestion()">Next</button>
+
+                </div>
+
+            </div>
+
+            <!-- Q11: Color palette -->
+
+            <div class="question-section" data-question="11">
+
+                <div class="question-number">Question 11 of 15</div>
+
+                <div class="question-text">Which color palette draws you in?</div>
+
+                <div class="options-container">
+
+                    <button class="option-button" data-answer="A">
+
+                        <span class="option-letter">A</span>Soft pink, ivory, and gold
+
+                    </button>
+
+                    <button class="option-button" data-answer="B">
+
+                        <span class="option-letter">B</span>Moss green, grey stone, and earth brown
+
+                    </button>
+
+                    <button class="option-button" data-answer="C">
+
+                        <span class="option-letter">C</span>Sky blue, white, and lemon yellow
+
+                    </button>
+
+                    <button class="option-button" data-answer="D">
+
+                        <span class="option-letter">D</span>Charcoal black, ink blue, and silver
+
+                    </button>
+
+                    <button class="option-button" data-answer="E">
+
+                        <span class="option-letter">E</span>Burnt orange, deep red, and amber
+
+                    </button>
+
+                </div>
+
+                <div class="button-container">
+
+                    <button class="btn btn-secondary" onclick="previousQuestion()">Back</button>
+
+                    <button class="btn btn-primary" id="btnNext11" disabled onclick="nextQuestion()">Next</button>
+
+                </div>
+
+            </div>
+
+            <!-- Q12: Scent memory -->
+
+            <div class="question-section" data-question="12">
+
+                <div class="question-number">Question 12 of 15</div>
+
+                <div class="question-text">A scent memory that comforts you most?</div>
+
+                <div class="options-container">
+
+                    <button class="option-button" data-answer="A">
+
+                        <span class="option-letter">A</span>Walking past a flower shop in spring
+
+                    </button>
+
+                    <button class="option-button" data-answer="B">
+
+                        <span class="option-letter">B</span>The smell of wet soil after rain
+
+                    </button>
+
+                    <button class="option-button" data-answer="C">
+
+                        <span class="option-letter">C</span>Fresh ocean breeze or citrus peel
+
+                    </button>
+
+                    <button class="option-button" data-answer="D">
+
+                        <span class="option-letter">D</span>Old books in a quiet library
+
+                    </button>
+
+                    <button class="option-button" data-answer="E">
+
+                        <span class="option-letter">E</span>Woodsmoke from a winter bonfire
+
+                    </button>
+
+                </div>
+
+                <div class="button-container">
+
+                    <button class="btn btn-secondary" onclick="previousQuestion()">Back</button>
+
+                    <button class="btn btn-primary" id="btnNext12" disabled onclick="nextQuestion()">Next</button>
+
+                </div>
+
+            </div>
+
+            <!-- Q13: Unwind -->
+
+            <div class="question-section" data-question="13">
+
+                <div class="question-number">Question 13 of 15</div>
+
+                <div class="question-text">How do you unwind after a long day?</div>
+
+                <div class="options-container">
+
+                    <button class="option-button" data-answer="A">
+
+                        <span class="option-letter">A</span>A long bath with floral bath salts
+
+                    </button>
+
+                    <button class="option-button" data-answer="B">
+
+                        <span class="option-letter">B</span>A slow walk in the park at dusk
+
+                    </button>
+
+                    <button class="option-button" data-answer="C">
+
+                        <span class="option-letter">C</span>A chilled drink with fresh mint
+
+                    </button>
+
+                    <button class="option-button" data-answer="D">
+
+                        <span class="option-letter">D</span>Writing or sketching in silence
+
+                    </button>
+
+                    <button class="option-button" data-answer="E">
+
+                        <span class="option-letter">E</span>Cooking something warm and spiced
+
+                    </button>
+
+                </div>
+
+                <div class="button-container">
+
+                    <button class="btn btn-secondary" onclick="previousQuestion()">Back</button>
+
+                    <button class="btn btn-primary" id="btnNext13" disabled onclick="nextQuestion()">Next</button>
+
+                </div>
+
+            </div>
+
+            <!-- Q14: Korean scene -->
+
+            <div class="question-section" data-question="14">
+
+                <div class="question-number">Question 14 of 15</div>
+
+                <div class="question-text">Pick a Korean scene that resonates with you.</div>
+
+                <div class="options-container">
+
+                    <button class="option-button" data-answer="A">
+
+                        <span class="option-letter">A</span>A royal garden with peonies in full bloom
+
+                    </button>
+
+                    <button class="option-button" data-answer="B">
+
+                        <span class="option-letter">B</span>Morning mist on Namsan mountain
+
+                    </button>
+
+                    <button class="option-button" data-answer="C">
+
+                        <span class="option-letter">C</span>Jeju seaside with wind blowing through tangerines
+
+                    </button>
+
+                    <button class="option-button" data-answer="D">
+
+                        <span class="option-letter">D</span>A scholar's study with ink and brushes
+
+                    </button>
+
+                    <button class="option-button" data-answer="E">
+
+                        <span class="option-letter">E</span>A hanok kitchen brewing ginger tea in winter
+
+                    </button>
+
+                </div>
+
+                <div class="button-container">
+
+                    <button class="btn btn-secondary" onclick="previousQuestion()">Back</button>
+
+                    <button class="btn btn-primary" id="btnNext14" disabled onclick="nextQuestion()">Next</button>
+
+                </div>
+
+            </div>
+
+            <!-- Q15: Ideal fragrance word (x1.5 weight) -->
+
+            <div class="question-section" data-question="15">
+
+                <div class="question-number">Question 15 of 15</div>
+
+                <div class="question-text">One word that best describes your ideal fragrance?</div>
+
+                <div class="options-container">
+
+                    <button class="option-button" data-answer="A">
+
+                        <span class="option-letter">A</span>Elegant
+
+                    </button>
+
+                    <button class="option-button" data-answer="B">
+
+                        <span class="option-letter">B</span>Grounding
+
+                    </button>
+
+                    <button class="option-button" data-answer="C">
+
+                        <span class="option-letter">C</span>Refreshing
+
+                    </button>
+
+                    <button class="option-button" data-answer="D">
+
+                        <span class="option-letter">D</span>Contemplative
+
+                    </button>
+
+                    <button class="option-button" data-answer="E">
+
+                        <span class="option-letter">E</span>Comforting
+
+                    </button>
+
+                </div>
+
+                <div class="button-container">
+
+                    <button class="btn btn-secondary" onclick="previousQuestion()">Back</button>
+
+                    <button class="btn btn-primary" id="btnSubmit">Get My Results</button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Results Section -->
+
+        <div id="results-content" class="result-section">
+
+            <div id="loading" class="loading" style="display: none;">
+
+                <div class="spinner"></div>
+
+                <p>Finding your perfect fragrance...</p>
+
+            </div>
+
+            <div id="result-display" style="display: none;">
+
+                <div class="result-card">
+
+                    <div class="result-icon" id="resultIcon">🌸</div>
+
+                    <div class="result-title" id="resultTitle">--</div>
+
+                    <div class="result-title-en korean-text" id="resultTitleKo" style="display: none;">--</div>
+
+                    <p class="result-description" id="resultDescription">--</p>
+
+                    <div class="scent-notes">
+
+                        <div class="scent-notes-label">Scent Notes</div>
+
+                        <div class="scent-notes-list" id="scentNotes">
+
+                            <!-- Populated by JS -->
+
+                        </div>
+
+                    </div>
+
+                    <a href="https://www.instagram.com/santokki.official/" class="discover-btn"
+                        id="discoverBtn">Discover More</a>
+
+                </div>
+
+                <div style="text-align: center; margin-top: 2rem;">
+
+                    <button class="btn btn-primary" onclick="restartQuiz()"
+                        style="max-width: 300px; margin: 0 auto;">Retake Quiz</button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+
+        // ============================================
+
+        // FIREBASE CONFIGURATION
+
+        // ============================================
+
+        // Replace these with your actual Firebase config from console.firebase.google.com
+
+        const firebaseConfig = {
+
+            apiKey: "AIzaSyA6a7I2yv1A4dvlbqpI9IgleYAdosZkn3c",
+
+            authDomain: "santokki-f7c72.firebaseapp.com",
+
+            projectId: "santokki-f7c72",
+
+            storageBucket: "santokki-f7c72.firebasestorage.app",
+
+            messagingSenderId: "186899981689",
+
+            appId: "1:186899981689:web:25baaacb9ee3efa534fba8"
+
+        };
+
+        // Initialize Firebase (safely with try-catch for missing config)
+
+        let firebaseInitialized = false;
+
+        try {
+
+            firebase.initializeApp(firebaseConfig);
+
+            firebaseInitialized = true;
+
+        } catch (e) {
+
+            console.warn("Firebase not initialized:", e.message); alert("Firebase init error: " + e.message);
+
+        }
+
+        const db = firebaseInitialized ? firebase.firestore() : null;
+
+        // ============================================
+
+        // NOTE: Webhook removed - using Firestore polling via n8n
+
+        // ============================================
+
+        // ============================================
+
+        // QUIZ DATA
+
+        // ============================================
+
+        const SCENT_PROFILES = {
+
+            FLORAL: { emoji: '🌸', name: 'Floral' },
+
+            GREEN: { emoji: '🌲', name: 'Green & Earthy' },
+
+            FRESH: { emoji: '🌊', name: 'Fresh' },
+
+            WOODY_INK: { emoji: '🖤', name: 'Woody & Ink' },
+
+            WARMING: { emoji: '🔥', name: 'Warming & Spicy' }
+
+        };
+
+        // Scoring matrix for Q4-Q15
+
+        const SCORING_MATRIX = {
+
+            q4: { A: { FLORAL: 3, GREEN: 1 }, B: { GREEN: 3, WOODY_INK: 1 }, C: { FRESH: 3 }, D: { WOODY_INK: 3 }, E: { WOODY_INK: 1, WARMING: 3 } },
+
+            q5: { A: { FLORAL: 3, FRESH: 1 }, B: { GREEN: 3, WOODY_INK: 1 }, C: { FRESH: 3, WARMING: 1 }, D: { WOODY_INK: 3, WARMING: 1 }, E: { WARMING: 3, WOODY_INK: 1 } },
+
+            q6: { A: { FLORAL: 3 }, B: { GREEN: 3, WOODY_INK: 1 }, C: { FRESH: 3 }, D: { WOODY_INK: 3 }, E: { WOODY_INK: 1, WARMING: 3 } },
+
+            q7: { A: { FLORAL: 3, GREEN: 1 }, B: { GREEN: 3, WARMING: 1 }, C: { FRESH: 3, FLORAL: 1 }, D: { WOODY_INK: 3, GREEN: 1 }, E: { WARMING: 3 } },
+
+            q8: { A: { FLORAL: 3, WARMING: 1 }, B: { GREEN: 3, FRESH: 1 }, C: { FRESH: 3, FLORAL: 1 }, D: { WOODY_INK: 3 }, E: { WOODY_INK: 1, WARMING: 3 } },
+
+            q9: { A: { FLORAL: 3 }, B: { GREEN: 3, FRESH: 1 }, C: { FRESH: 3, GREEN: 1 }, D: { WOODY_INK: 3 }, E: { WARMING: 3 } },
+
+            q10: { A: { FLORAL: 3 }, B: { GREEN: 3, WOODY_INK: 1 }, C: { FRESH: 3 }, D: { WOODY_INK: 3, WARMING: 1 }, E: { FLORAL: 1, WARMING: 3 } },
+
+            q11: { A: { FLORAL: 3 }, B: { GREEN: 3, WOODY_INK: 1 }, C: { FRESH: 3 }, D: { WOODY_INK: 3 }, E: { WARMING: 3 } },
+
+            q12: { A: { FLORAL: 3 }, B: { GREEN: 3, WARMING: 1 }, C: { FRESH: 3 }, D: { WOODY_INK: 3, GREEN: 1 }, E: { WOODY_INK: 1, WARMING: 3 } },
+
+            q13: { A: { FLORAL: 3, FRESH: 1 }, B: { GREEN: 3, FLORAL: 1 }, C: { FRESH: 3 }, D: { WOODY_INK: 3, WARMING: 1 }, E: { WARMING: 3 } },
+
+            q14: { A: { FLORAL: 3 }, B: { GREEN: 3, WOODY_INK: 1 }, C: { FRESH: 3 }, D: { WOODY_INK: 3 }, E: { WARMING: 3, FRESH: 1 } },
+
+            q15: { A: { FLORAL: 3, WOODY_INK: 1 }, B: { GREEN: 3, WOODY_INK: 1 }, C: { FRESH: 3, GREEN: 1 }, D: { WOODY_INK: 3 }, E: { WARMING: 3, FLORAL: 1 } } // x1.5 multiplier applied in calculation
+
+        };
+
+        // Product database
+
+        const PRODUCTS = {
+
+            living_bedroom: {
+
+                FLORAL: [
+
+                    { id: 'BC-001', name: '공주의 화원', name_en: 'The Princess Flower Garden', type: 'bedroom_candle', scent_notes: ['Peony', 'Pink Pepper', 'White Rose', 'Soft Amber'], description: 'A royal garden in the rain — delicate peonies, pink pepper, and soft amber behind the palace walls.' },
+
+                    { id: 'BC-002', name: '나주 배꽃의 향연', name_en: 'Naju Pear Blossom', type: 'bedroom_candle', scent_notes: ['Pear', 'Freesia', 'White Floral', 'Honey'], description: 'Pure sweetness of spring pear blossoms — white florals, freesia, and a touch of honey.' }
+
+                ],
+
+                GREEN: [
+
+                    { id: 'RS-001', name: '남산의 새벽 안개', name_en: 'Morning Mist of Namsan', type: 'room_spray', scent_notes: ['Oakmoss', 'Pine Needle', 'Damp Earth', 'White Cedarwood'], description: 'The mystical calm of dawn mist over Namsan pine forest — wet moss and cool earth.' },
+
+                    { id: 'RS-003', name: '기와의 기억', name_en: 'Memory of Tiles', type: 'room_spray', scent_notes: ['Mineral', 'Rainwater', 'Oakmoss'], description: 'The earthy vitality rising from rain-soaked roof tiles and garden soil after a summer shower.' }
+
+                ],
+
+                FRESH: [
+
+                    { id: 'RS-002', name: '제주 소금과 민트', name_en: 'Jeju Sea Salt & Mint', type: 'room_spray', scent_notes: ['Sea Salt', 'Peppermint', 'Eucalyptus', 'Ambergris'], description: 'Cool sea breeze from Jeju volcanic shores — wild mint and eucalyptus over ocean salt.' }
+
+                ],
+
+                WOODY_INK: [
+
+                    { id: 'BC-003', name: '단청 아래 빗소리', name_en: 'Rain Under Dancheong', type: 'bedroom_candle', scent_notes: ['Wet Cedar', 'Wild Flowers', 'Sandalwood'], description: 'A serene rain-soaked hanok garden — wet cedar, wild flowers, and warm sandalwood.' }
+
+                ],
+
+                WARMING: [
+
+                    { id: 'BC-003', name: '단청 아래 빗소리', name_en: 'Rain Under Dancheong', type: 'bedroom_candle', scent_notes: ['Wet Cedar', 'Wild Flowers', 'Sandalwood'], description: 'A serene rain-soaked hanok garden — wet cedar, wild flowers, and warm sandalwood.' }
+
+                ]
+
+            },
+
+            kitchen: {
+
+                FRESH: [
+
+                    { id: 'KC-001', name: '생강과 유자', name_en: 'Ginger & Citron Warmth', type: 'kitchen_candle', scent_notes: ['Yuzu', 'Ginger', 'Lemongrass', 'Honey'], description: 'Warm ginger-citron tea on a cold winter day — zesty yuzu, lemongrass, and golden honey.' }
+
+                ],
+
+                WOODY_INK: [
+
+                    { id: 'KC-004', name: '세자의 서재', name_en: 'The Crown Prince Study', type: 'kitchen_candle', scent_notes: ['Sandalwood', 'Ink', 'Bergamot', 'Thyme', 'Pine'], description: 'A moonlit scholars study after rain — ink stone, bergamot, thyme, and distant pine.' }
+
+                ],
+
+                GREEN: [
+
+                    { id: 'KC-002', name: '조용한 찻자리', name_en: 'A Quiet Tea Ceremony', type: 'kitchen_candle', scent_notes: ['Roasted Rice', 'Barley Tea', 'Vetiver'], description: 'Roasted grain and tea leaves — a calm, earthy moment of quiet conversation.' }
+
+                ],
+
+                WARMING: [
+
+                    { id: 'KC-001', name: '생강과 유자', name_en: 'Ginger & Citron Warmth', type: 'kitchen_candle', scent_notes: ['Yuzu', 'Ginger', 'Lemongrass', 'Honey'], description: 'Warm ginger-citron tea on a cold winter day — zesty yuzu, lemongrass, and golden honey.' }
+
+                ],
+
+                FLORAL: [
+
+                    { id: 'KC-001', name: '생강과 유자', name_en: 'Ginger & Citron Warmth', type: 'kitchen_candle', scent_notes: ['Yuzu', 'Ginger', 'Lemongrass', 'Honey'], description: 'Warm ginger-citron tea on a cold winter day — zesty yuzu, lemongrass, and golden honey.' }
+
+                ]
+
+            },
+
+            car: {
+
+                GREEN: [
+
+                    { id: 'CD-003', name: '비취의 날개', name_en: 'Wings of Celadon', type: 'car_diffuser', scent_notes: ['Green Tea', 'Bergamot', 'Plum Blossom', 'Bamboo Leaf', 'Moss', 'Cedarwood'], description: 'Where Goryeo celadon meets an English manor garden — green tea, plum blossom, bamboo leaf, and mossy cedarwood.' }
+
+                ],
+
+                FRESH: [
+
+                    { id: 'CD-003', name: '비취의 날개', name_en: 'Wings of Celadon', type: 'car_diffuser', scent_notes: ['Green Tea', 'Bergamot', 'Plum Blossom', 'Bamboo Leaf', 'Moss', 'Cedarwood'], description: 'Where Goryeo celadon meets an English manor garden — green tea, plum blossom, bamboo leaf, and mossy cedarwood.' }
+
+                ],
+
+                WOODY_INK: [
+
+                    { id: 'CD-001', name: '한지 위 먹향', name_en: 'Ink on Hanji', type: 'car_diffuser', scent_notes: ['Black Ink', 'Cedarwood', 'Incense', 'Metallic Notes'], description: 'A scholars study — fresh ink on handmade Hanji paper, cedarwood, and cool metallic notes.' }
+
+                ],
+
+                WARMING: [
+
+                    { id: 'CD-002', name: '흑송과 호박', name_en: 'Black Pine & Amber', type: 'car_diffuser', scent_notes: ['Black Pine', 'Sandalwood', 'Amber', 'Spicy Herbs'], description: 'Rugged black pine shaped by ocean winds — sandalwood, amber, and spicy herbs.' }
+
+                ],
+
+                FLORAL: [
+
+                    { id: 'CD-003', name: '비취의 날개', name_en: 'Wings of Celadon', type: 'car_diffuser', scent_notes: ['Green Tea', 'Bergamot', 'Plum Blossom', 'Bamboo Leaf', 'Moss', 'Cedarwood'], description: 'Where Goryeo celadon meets an English manor garden — green tea, plum blossom, bamboo leaf, and mossy cedarwood.' }
+
+                ]
+
+            }
+
+        };
+
+        // ============================================
+
+        // STATE MANAGEMENT
+
+        // ============================================
+
+        let currentQuestion = 1;
+
+        let answers = {};
+
+        let scores = { FLORAL: 0, GREEN: 0, FRESH: 0, WOODY_INK: 0, WARMING: 0 };
+
+        let selectedSpace = null;
+
+        // Read subscriber_id from URL (sent by ManyChat), fallback to random UUID
+
+        function getSubscriberId() {
+
+            const urlParams = new URLSearchParams(window.location.search);
+
+            const mcId = urlParams.get('subscriber_id');
+
+            if (mcId) return mcId;
+
+            return 'web-' + 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+
+                let r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+
+                return v.toString(16);
+
+            });
+
+        }
+
+        let subscriberId = getSubscriberId();
+
+        console.log('Subscriber ID:', subscriberId);
+
+        // ============================================
+
+        // QUIZ NAVIGATION
+
+        // ============================================
+
+        function showQuestion(qNum) {
+
+            const sections = document.querySelectorAll('.question-section');
+
+            sections.forEach(s => s.classList.remove('active'));
+
+            document.querySelector(`[data-question="${qNum}"]`).classList.add('active');
+
+            const progressPercent = (qNum / 15) * 100;
+
+            document.getElementById('progressFill').style.width = progressPercent + '%';
+
+            document.getElementById('currentQuestion').textContent = qNum;
+
+            // Update button states
+
+            updateButtonStates();
+
+            window.scrollTo(0, 0);
+
+        }
+
+        function updateButtonStates() {
+
+            for (let i = 1; i <= 15; i++) {
+
+                const btnNext = document.getElementById(`btnNext${i}`);
+
+                if (btnNext) {
+
+                    btnNext.disabled = !answers[`q${i}`];
+
+                }
+
+            }
+
+        }
+
+        function nextQuestion() {
+
+            if (currentQuestion < 15) {
+
+                currentQuestion++;
+
+                showQuestion(currentQuestion);
+
+            }
+
+        }
+
+        function previousQuestion() {
+
+            if (currentQuestion > 1) {
+
+                currentQuestion--;
+
+                showQuestion(currentQuestion);
+
+            }
+
+        }
+
+        // ============================================
+
+        // ANSWER SELECTION
+
+        // ============================================
+
+        document.addEventListener('click', (e) => {
+
+            const optionBtn = e.target.closest('.option-button');
+
+            if (optionBtn) {
+
+                const section = optionBtn.closest('.question-section');
+
+                const qNum = section.dataset.question;
+
+                const answer = optionBtn.dataset.answer;
+
+                // Clear previous selection
+
+                section.querySelectorAll('.option-button').forEach(btn => btn.classList.remove('selected'));
+
+                // Select this option
+
+                optionBtn.classList.add('selected');
+
+                // Store answer
+
+                answers[`q${qNum}`] = answer;
+
+                // Store selected space for Q3
+
+                if (qNum === '3') {
+
+                    selectedSpace = answer;
+
+                }
+
+                // Update buttons
+
+                updateButtonStates();
+
+            }
+
+        });
+
+        // ============================================
+
+        // RESULT CALCULATION
+
+        // ============================================
+
+        function calculateResults() {
+
+            // Reset scores
+
+            scores = { FLORAL: 0, GREEN: 0, FRESH: 0, WOODY_INK: 0, WARMING: 0 };
+
+            // Calculate scores for Q4-Q15
+
+            for (let q = 4; q <= 15; q++) {
+
+                const qKey = `q${q}`;
+
+                const answer = answers[qKey];
+
+                const isQ15 = q === 15;
+
+                const multiplier = isQ15 ? 1.5 : 1;
+
+                if (SCORING_MATRIX[qKey] && SCORING_MATRIX[qKey][answer]) {
+
+                    const scoreMap = SCORING_MATRIX[qKey][answer];
+
+                    Object.keys(scoreMap).forEach(scent => {
+
+                        scores[scent] += scoreMap[scent] * multiplier;
+
+                    });
+
+                }
+
+            }
+
+            console.log('Final scores:', scores);
+
+            return scores;
+
+        }
+
+        function getTopScent() {
+
+            let topScent = 'FLORAL';
+
+            let topScore = scores['FLORAL'];
+
+            Object.keys(scores).forEach(scent => {
+
+                if (scores[scent] > topScore) {
+
+                    topScore = scores[scent];
+
+                    topScent = scent;
+
+                } else if (scores[scent] === topScore) {
+
+                    // Tiebreaker: Q15 > Q14 > Q12
+
+                    const q15Answer = answers.q15;
+
+                    const q14Answer = answers.q14;
+
+                    const q12Answer = answers.q12;
+
+                    if (SCORING_MATRIX.q15[q15Answer][scent] > SCORING_MATRIX.q15[q15Answer][topScent] || 0) {
+
+                        topScent = scent;
+
+                    } else if (SCORING_MATRIX.q14[q14Answer][scent] > SCORING_MATRIX.q14[q14Answer][topScent] || 0) {
+
+                        topScent = scent;
+
+                    } else if (SCORING_MATRIX.q12[q12Answer][scent] > SCORING_MATRIX.q12[q12Answer][topScent] || 0) {
+
+                        topScent = scent;
+
+                    }
+
+                }
+
+            });
+
+            return topScent;
+
+        }
+
+        function getMatchedProduct() {
+
+            const topScent = getTopScent();
+
+            const spaceProducts = PRODUCTS[selectedSpace];
+
+            if (!spaceProducts) {
+
+                console.error('No products for space:', selectedSpace);
+
+                return PRODUCTS.living_bedroom.FLORAL[0];
+
+            }
+
+            const products = spaceProducts[topScent];
+
+            if (!products || products.length === 0) {
+
+                console.error('No products for scent:', topScent);
+
+                // Fallback: try FLORAL first, then any available
+
+                const fallbackScents = ['FLORAL', 'GREEN', 'FRESH', 'WOODY_INK', 'WARMING'];
+
+                for (const fb of fallbackScents) {
+
+                    if (spaceProducts[fb] && spaceProducts[fb].length > 0) {
+
+                        return spaceProducts[fb][0];
+
+                    }
+
+                }
+
+                return PRODUCTS.living_bedroom.FLORAL[0];
+
+            }
+
+            return products[0];
+
+        }
+
+        // ============================================
+
+        // SUBMIT AND SAVE RESULTS
+
+        // ============================================
+
+        document.getElementById('btnSubmit').addEventListener('click', async () => {
+
+            try {
+
+                // Hide quiz, show loading
+
+                document.getElementById('quiz-content').style.display = 'none';
+
+                document.getElementById('results-content').classList.add('active');
+
+                document.getElementById('loading').style.display = 'block';
+
+                // Calculate results
+
+                calculateResults();
+
+                // Get matched product
+
+                const matchedProduct = getMatchedProduct();
+
+                const topScent = getTopScent();
+
+                if (!matchedProduct) {
+
+                    console.error('No matched product found!');
+
+                    document.getElementById('loading').style.display = 'none';
+
+                    alert('Something went wrong. Please try again.');
+
+                    return;
+
+                }
+
+                // Prepare data for Firebase
+
+                const resultData = {
+
+                    subscriber_id: subscriberId,
+
+                    created_at: new Date().toISOString(),
+
+                    basic_info: {
+
+                        gender: answers.q1,
+
+                        age_group: answers.q2
+
+                    },
+
+                    selected_space: selectedSpace,
+
+                    answers: {
+
+                        q1: answers.q1, q2: answers.q2, q3: answers.q3,
+
+                        q4: answers.q4, q5: answers.q5, q6: answers.q6, q7: answers.q7,
+
+                        q8: answers.q8, q9: answers.q9, q10: answers.q10, q11: answers.q11,
+
+                        q12: answers.q12, q13: answers.q13, q14: answers.q14, q15: answers.q15
+
+                    },
+
+                    scores: scores,
+
+                    result: {
+
+                        top_scent: topScent,
+
+                        matched_product_id: matchedProduct.id,
+
+                        matched_product_name: matchedProduct.name,
+
+                        matched_product_name_en: matchedProduct.name_en,
+
+                        category: matchedProduct.type
+
+                    },
+
+                    dm_sent: false
+
+                };
+
+                // Show results first (don't block on network calls)
+
+                setTimeout(() => {
+
+                    displayResults(matchedProduct, topScent);
+
+                }, 1000);
+
+                // Save to Firebase (non-blocking)
+
+                console.log('FIREBASE CHECK:', firebaseInitialized, db); if (!firebaseInitialized || !db) { alert('Firebase not connected! Data will not be saved.'); }
+                if (firebaseInitialized && db) {
+
+                    db.collection('quiz_results').add(resultData)
+
+                        .then(() => console.log('Results saved to Firebase'))
+
+                        .catch((error) => console.error('Firebase save error:', error));
+
+                }
+
+                // n8n will poll Firestore for documents where dm_sent === false
+
+                console.log('Results saved. n8n will process via Firestore polling.');
+
+            } catch (err) { console.error('Submit error:', err); document.getElementById('loading').style.display = 'none'; alert('Error: ' + err.message); }
+
+        });
+
+        function displayResults(product, topScent) {
+
+            document.getElementById('loading').style.display = 'none';
+
+            document.getElementById('result-display').style.display = 'block';
+
+            const icon = SCENT_PROFILES[topScent].emoji;
+
+            document.getElementById('resultIcon').textContent = icon;
+
+            document.getElementById('resultTitle').textContent = product.name_en;
+
+            document.getElementById('resultTitleKo').textContent = product.name;
+
+            document.getElementById('resultDescription').textContent = product.description;
+
+            // Scent notes
+
+            const scentNotesHtml = product.scent_notes.map(note => `<span class="scent-tag">${note}</span>`).join('');
+
+            document.getElementById('scentNotes').innerHTML = scentNotesHtml;
+
+            // Discover button
+
+            document.getElementById('discoverBtn').href = 'https://www.instagram.com/santokki.official/';
+
+        }
+
+        function restartQuiz() {
+
+            currentQuestion = 1;
+
+            answers = {};
+
+            scores = { FLORAL: 0, GREEN: 0, FRESH: 0, WOODY_INK: 0, WARMING: 0 };
+
+            selectedSpace = null;
+
+            subscriberId = getSubscriberId();
+
+            document.querySelectorAll('.option-button').forEach(btn => btn.classList.remove('selected'));
+
+            document.getElementById('quiz-content').style.display = 'block';
+
+            document.getElementById('results-content').classList.remove('active');
+
+            showQuestion(1);
+
+        }
+
+        // ============================================
+
+        // INITIALIZE
+
+        // ============================================
+
+        showQuestion(1);
+
+    </script>
+
+</body>
+
+</html>

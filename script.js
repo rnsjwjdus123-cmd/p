@@ -275,7 +275,8 @@ function setupEventListeners() {
   scentTestTriggers.forEach(trigger => {
     trigger.addEventListener('click', (e) => {
       e.preventDefault();
-      openScentTest();
+      // santokki 15문항 시향 퀴즈 페이지로 이동
+      window.location.href = 'santokki/quiz/index.html';
     });
   });
 

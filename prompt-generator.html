@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Santokki · 광고/게시글 프롬프트 생성</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Cormorant+Garamond:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #fafaf9; --card: #fff; --border: #e7e5e4; --text: #1c1917; --text2: #57534e; --accent: #1e5c3a; --accent-light: #f0f7f4;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; padding: 24px; }
+    h1 { font-family: 'Cormorant Garamond', serif; font-size: 1.75rem; margin-bottom: 8px; color: var(--text); }
+    .sub { font-size: 0.875rem; color: var(--text2); margin-bottom: 24px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 20px 24px; margin-bottom: 16px; }
+    .card h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: .05em; color: var(--text2); margin-bottom: 10px; }
+    label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--text2); margin-bottom: 6px; }
+    input, textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 0.9rem; }
+    textarea { min-height: 80px; resize: vertical; }
+    .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 12px; }
+    .row > * { flex: 1; min-width: 120px; }
+    button {
+      background: var(--accent); color: #fff; border: none; padding: 10px 20px; border-radius: 6px;
+      font-family: inherit; font-weight: 600; font-size: 0.9rem; cursor: pointer;
+    }
+    button:hover { background: #153d28; }
+    button.secondary { background: var(--card); color: var(--text); border: 1px solid var(--border); }
+    button.secondary:hover { background: var(--accent-light); color: var(--accent); }
+    .result { margin-top: 24px; }
+    .result-block { background: var(--accent-light); border: 1px solid #b3d7c7; border-radius: 8px; padding: 14px 18px; margin-bottom: 12px; position: relative; }
+    .result-block h3 { font-size: 0.85rem; color: var(--accent); margin-bottom: 8px; }
+    .result-block pre { white-space: pre-wrap; word-break: break-word; font-size: 0.85rem; color: var(--text); }
+    .copy-btn { position: absolute; top: 12px; right: 12px; padding: 6px 12px; font-size: 0.75rem; }
+    .error { background: #fef2f2; border-color: #fecaca; color: #dc2626; }
+    .loading { opacity: 0.7; pointer-events: none; }
+  </style>
+</head>
+<body>
+  <h1>Santokki 광고 · 게시글 프롬프트 생성</h1>
+  <p class="sub">대시보드 통계를 넣으면 최적 상품 + 15초 광고 스크립트 + 피드 게시글용 카피가 생성됩니다. 유럽 SNS(인스타·X·틱톡)에 맞춘 문구로 생성됩니다.</p>
+
+  <div class="card">
+    <h2>자동 생성 (시향 테스트 10명 이상 시)</h2>
+    <p style="font-size:0.8rem;color:var(--text2);margin-bottom:10px">Firebase에 저장된 시향 테스트 결과가 10명 이상이면, 그 통계를 바탕으로 바로 프롬프트를 생성합니다.</p>
+    <button type="button" id="btnFirebase">Firebase 통계로 자동 생성</button>
+    <p id="firebaseStatus" style="font-size:0.8rem;color:var(--text2);margin-top:8px;display:none"></p>
+  </div>
+
+  <div class="card">
+    <h2>대시보드 통계 입력 (수동)</h2>
+    <p style="font-size:0.8rem;color:var(--text2);margin-bottom:12px">대시보드에서 확인한 내용을 아래 형식에 맞춰 넣거나, 예시로 채우기 후 생성 버튼을 누르세요.</p>
+    <div class="row">
+      <div>
+        <label>인기 향 (쉼표로)</label>
+        <input type="text" id="topScents" placeholder="GREEN, FLORAL, FRESH">
+      </div>
+      <div>
+        <label>인기 매칭 제품 (쉼표로)</label>
+        <input type="text" id="topProducts" placeholder="남산의 새벽 안개, 공주의 화원">
+      </div>
+    </div>
+    <div class="row">
+      <div>
+        <label>총 응답 수</label>
+        <input type="number" id="totalResponses" placeholder="128" value="128">
+      </div>
+      <div>
+        <label>기간</label>
+        <input type="text" id="period" placeholder="7d" value="7d">
+      </div>
+    </div>
+    <div style="margin-top:12px">
+      <label>추가 통계 (선택, JSON)</label>
+      <textarea id="extraStats" placeholder='{"genderRatio":{"female":70,"male":30},"spaceRatio":{"living_bedroom":50,"kitchen":30,"car":20}}'></textarea>
+    </div>
+    <div style="margin-top:16px;display:flex;gap:8px">
+      <button type="button" id="btnSample">예시로 채우기</button>
+      <button type="button" id="btnGenerate">생성하기</button>
+    </div>
+  </div>
+
+  <div id="resultArea" class="result" style="display:none">
+    <div class="card">
+      <h2>생성 결과</h2>
+      <div id="resultOptimal" class="result-block" style="display:none">
+        <h3>최적 상품</h3>
+        <pre id="outOptimal"></pre>
+        <button class="copy-btn secondary" data-copy="outOptimal">복사</button>
+      </div>
+      <div id="resultAd" class="result-block" style="display:none">
+        <h3>15초 광고 스크립트</h3>
+        <pre id="outAd"></pre>
+        <button class="copy-btn secondary" data-copy="outAd">복사</button>
+      </div>
+      <div id="resultFeed" class="result-block" style="display:none">
+        <h3>게시글용 카피 (캡션 + 해시태그)</h3>
+        <pre id="outFeed"></pre>
+        <button class="copy-btn secondary" data-copy="outFeed">복사</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="errorArea" class="card error" style="display:none">
+    <strong>오류</strong>
+    <pre id="errorText"></pre>
+  </div>
+
+  <script>
+    const API_BASE = ''; // same origin
+
+    document.getElementById('btnFirebase').onclick = async () => {
+      const statusEl = document.getElementById('firebaseStatus');
+      statusEl.style.display = 'block';
+      statusEl.textContent = 'Firebase 통계 불러오는 중…';
+      statusEl.style.color = 'var(--text2)';
+      document.body.classList.add('loading');
+      const wrap = document.getElementById('resultArea');
+      const errWrap = document.getElementById('errorArea');
+      errWrap.style.display = 'none';
+      wrap.style.display = 'none';
+      try {
+        const res = await fetch(API_BASE + '/api/stats-from-firebase');
+        const data = await res.json();
+        if (!data.ok || data.count < 10) {
+          statusEl.textContent = data.message || '시향 테스트 응답이 10명 이상일 때만 사용할 수 있습니다. (현재 ' + (data.count ?? 0) + '명)';
+          statusEl.style.color = '#b45309';
+          document.body.classList.remove('loading');
+          return;
+        }
+        statusEl.textContent = '통계 반영됨 (' + data.count + '명). 프롬프트 생성 중…';
+        const genRes = await fetch(API_BASE + '/api/generate-prompts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ stats: data.stats })
+        });
+        const genData = await genRes.json();
+        document.body.classList.remove('loading');
+        if (!genRes.ok) {
+          document.getElementById('errorText').textContent = genData.detail || genData.error || genRes.statusText;
+          errWrap.style.display = 'block';
+          statusEl.textContent = '';
+          return;
+        }
+        document.getElementById('outOptimal').textContent = typeof genData.optimalProduct === 'object'
+          ? JSON.stringify(genData.optimalProduct, null, 2)
+          : String(genData.optimalProduct || '-');
+        document.getElementById('outAd').textContent = genData.adScript15s || '-';
+        document.getElementById('outFeed').textContent = genData.feedPostCopy || '-';
+        document.getElementById('resultOptimal').style.display = 'block';
+        document.getElementById('resultAd').style.display = 'block';
+        document.getElementById('resultFeed').style.display = 'block';
+        wrap.style.display = 'block';
+        statusEl.textContent = 'Firebase 통계(' + data.count + '명) 기준으로 생성 완료.';
+        statusEl.style.color = 'var(--accent)';
+      } catch (e) {
+        document.body.classList.remove('loading');
+        statusEl.textContent = '';
+        document.getElementById('errorText').textContent = e.message;
+        errWrap.style.display = 'block';
+      }
+    };
+
+    document.getElementById('btnSample').onclick = () => {
+      document.getElementById('topScents').value = 'GREEN, FLORAL, WOODY_INK';
+      document.getElementById('topProducts').value = 'Morning Mist of Namsan, The Princess\'s Flower Garden';
+      document.getElementById('totalResponses').value = '156';
+      document.getElementById('period').value = '7d';
+      document.getElementById('extraStats').value = JSON.stringify({
+        genderRatio: { female: 72, male: 26 },
+        spaceRatio: { living_bedroom: 55, kitchen: 25, car: 20 }
+      }, null, 2);
+    };
+
+    document.getElementById('btnGenerate').onclick = async () => {
+      const topScents = document.getElementById('topScents').value.split(',').map(s => s.trim()).filter(Boolean);
+      const topProducts = document.getElementById('topProducts').value.split(',').map(s => s.trim()).filter(Boolean);
+      let extra = {};
+      try {
+        const raw = document.getElementById('extraStats').value.trim();
+        if (raw) extra = JSON.parse(raw);
+      } catch (e) {}
+
+      const stats = {
+        topScents,
+        topProducts,
+        totalResponses: parseInt(document.getElementById('totalResponses').value, 10) || 0,
+        period: document.getElementById('period').value || '7d',
+        ...extra
+      };
+
+      const wrap = document.getElementById('resultArea');
+      const errWrap = document.getElementById('errorArea');
+      errWrap.style.display = 'none';
+      wrap.style.display = 'none';
+      document.body.classList.add('loading');
+
+      try {
+        const res = await fetch(API_BASE + '/api/generate-prompts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ stats })
+        });
+        const data = await res.json();
+        document.body.classList.remove('loading');
+
+        if (!res.ok) {
+          document.getElementById('errorText').textContent = data.detail || data.error || res.statusText;
+          errWrap.style.display = 'block';
+          return;
+        }
+
+        document.getElementById('outOptimal').textContent = typeof data.optimalProduct === 'object'
+          ? JSON.stringify(data.optimalProduct, null, 2)
+          : String(data.optimalProduct || '-');
+        document.getElementById('outAd').textContent = data.adScript15s || '-';
+        document.getElementById('outFeed').textContent = data.feedPostCopy || '-';
+
+        document.getElementById('resultOptimal').style.display = 'block';
+        document.getElementById('resultAd').style.display = 'block';
+        document.getElementById('resultFeed').style.display = 'block';
+        wrap.style.display = 'block';
+      } catch (e) {
+        document.body.classList.remove('loading');
+        document.getElementById('errorText').textContent = e.message;
+        errWrap.style.display = 'block';
+      }
+    };
+
+    document.querySelectorAll('[data-copy]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-copy');
+        const el = document.getElementById(id);
+        if (el) {
+          navigator.clipboard.writeText(el.textContent);
+          btn.textContent = '복사됨';
+          setTimeout(() => { btn.textContent = '복사'; }, 1500);
+        }
+      });
+    });
+  </script>
+</body>
+</html>

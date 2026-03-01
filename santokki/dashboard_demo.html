@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Santokki Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --white:#fafaf9;--off-white:#f5f5f4;
+  --gray-100:#e7e5e4;--gray-200:#d6d3d1;--gray-300:#a8a29e;--gray-400:#78716c;--gray-500:#57534e;--gray-600:#44403c;--gray-700:#292524;--gray-800:#1c1917;--gray-900:#0c0a09;
+  --green-50:#f0f7f4;--green-100:#d9ebe3;--green-200:#b3d7c7;--green-300:#7eb99e;--green-400:#4d9b73;--green-500:#2d7a52;--green-600:#1e5c3a;--green-700:#153d28;
+  --accent:#1e5c3a;--accent-light:#f0f7f4;--accent-hover:#153d28;
+  --red:#dc2626;--orange:#ea580c;--text:#1c1917;--text2:#57534e;--text3:#a8a29e;
+  --border:#e7e5e4;--radius:8px;
+  --font-display:'Cormorant Garamond',Georgia,serif;
+  --font-body:'Outfit',-apple-system,sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-body);font-weight:400;color:var(--text);background:var(--white);line-height:1.6;-webkit-font-smoothing:antialiased}
+
+/* ── Layout ──────────────────────────────────────── */
+.layout{display:flex;min-height:100vh}
+.sidebar{width:220px;background:#fff;border-right:1px solid var(--border);padding:24px 16px;position:fixed;height:100vh;overflow-y:auto;z-index:10}
+.sidebar .logo{display:flex;align-items:center;gap:8px;margin-bottom:28px;padding:0 8px}
+.sidebar .logo-icon{width:28px;height:28px;display:flex;align-items:center;justify-content:center}
+.sidebar .logo-icon .ear{position:absolute;width:6px;height:12px;background:var(--green-600);border-radius:6px 6px 2px 2px}
+.sidebar .logo-icon .ear.l{transform:rotate(-18deg) translate(-5px, -2px)}
+.sidebar .logo-icon .ear.r{transform:rotate(18deg) translate(5px, -2px)}
+.sidebar .logo span{font-family:var(--font-display);font-size:1.35rem;font-weight:600;color:var(--gray-800);letter-spacing:.02em}
+.sidebar nav a{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--radius);color:var(--gray-500);text-decoration:none;font-size:.82rem;font-weight:500;transition:.15s;margin-bottom:1px}
+.sidebar nav a:hover{background:var(--off-white);color:var(--gray-700)}
+.sidebar nav a.active{background:var(--accent-light);color:var(--accent)}
+.sidebar .sep{height:1px;background:var(--border);margin:14px 0}
+.main{flex:1;margin-left:220px;padding:28px 36px 60px;max-width:calc(100% - 220px)}
+
+/* ── Top Bar ─────────────────────────────────────── */
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+.topbar h1{font-family:var(--font-display);font-size:1.6rem;font-weight:600;color:var(--gray-800)}
+.topbar .meta{display:flex;align-items:center;gap:14px}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:.7rem;font-weight:600;letter-spacing:.03em}
+.badge.demo{background:var(--accent-light);color:var(--accent);border:1px solid var(--green-200)}
+
+/* ── Filters ─────────────────────────────────────── */
+.filter-bar{display:flex;gap:6px;margin-bottom:24px}
+.filter-btn{padding:6px 16px;border-radius:20px;border:1px solid var(--border);background:#fff;color:var(--text2);font-size:.78rem;font-weight:500;cursor:pointer;transition:.15s;font-family:var(--font-body)}
+.filter-btn:hover{border-color:var(--gray-300);color:var(--gray-700)}
+.filter-btn.active{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+
+/* ── KPI Cards ───────────────────────────────────── */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.kpi{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:18px 22px;position:relative;transition:box-shadow .2s}
+.kpi:hover{box-shadow:0 2px 12px rgba(0,0,0,.04)}
+.kpi .top-line{height:2px;border-radius:2px;margin-bottom:14px}
+.kpi:nth-child(1) .top-line{background:var(--green-500)}
+.kpi:nth-child(2) .top-line{background:var(--green-300)}
+.kpi:nth-child(3) .top-line{background:var(--orange)}
+.kpi:nth-child(4) .top-line{background:var(--green-600)}
+.kpi .label{font-size:.72rem;color:var(--text3);font-weight:500;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em}
+.kpi .value{font-family:var(--font-display);font-size:2rem;font-weight:600;color:var(--gray-800);letter-spacing:-.02em}
+.kpi .sub{font-size:.72rem;margin-top:4px;font-weight:500}
+
+/* ── Cards ────────────────────────────────────────── */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}
+.card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:22px;transition:box-shadow .2s}
+.card:hover{box-shadow:0 2px 12px rgba(0,0,0,.04)}
+.card h3{font-family:var(--font-body);font-size:.85rem;font-weight:600;color:var(--gray-700);margin-bottom:3px}
+.card .desc{font-size:.72rem;color:var(--text3);margin-bottom:18px}
+.card canvas{max-height:260px}
+
+/* ── Alert ────────────────────────────────────────── */
+.alert-banner{background:#fef2f2;border:1px solid #fecaca;border-radius:var(--radius);padding:12px 18px;margin-bottom:16px;display:flex;align-items:center;gap:10px;font-size:.82rem;color:var(--red)}
+.alert-banner strong{font-weight:600}
+
+/* ── Funnel ───────────────────────────────────────── */
+.funnel-step{display:flex;align-items:center;gap:14px;padding:10px 0}
+.funnel-bar-wrap{flex:1;height:32px;border-radius:6px;overflow:hidden;background:var(--off-white)}
+.funnel-bar{height:100%;border-radius:6px;display:flex;align-items:center;padding:0 14px;font-size:.75rem;font-weight:600;color:#fff}
+.funnel-pct{width:56px;text-align:right;font-size:.85rem;font-weight:700}
+.funnel-label{width:130px;font-size:.75rem;color:var(--text2)}
+.funnel-drop{text-align:center;font-size:.68rem;color:var(--text3);padding:1px 0}
+
+/* ── Table ────────────────────────────────────────── */
+.data-table{width:100%;border-collapse:collapse;font-size:.8rem}
+.data-table th{text-align:left;color:var(--text3);font-weight:500;padding:10px 12px;border-bottom:1px solid var(--border);font-size:.68rem;text-transform:uppercase;letter-spacing:.05em}
+.data-table td{padding:10px 12px;border-bottom:1px solid var(--gray-100)}
+.data-table tr:hover td{background:var(--green-50)}
+.status-badge{padding:3px 10px;border-radius:12px;font-size:.68rem;font-weight:600}
+.status-badge.sent{background:#dcfce7;color:#166534}
+.status-badge.pending{background:#fff7ed;color:var(--orange)}
+
+/* ── Responsive ───────────────────────────────────── */
+@media(max-width:1100px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.grid-2,.grid-3{grid-template-columns:1fr}}
+@media(max-width:768px){.sidebar{display:none}.main{margin-left:0;padding:16px;max-width:100%}}
+</style>
+</head>
+<body>
+<div class="layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="logo"><span>Santokki</span></div>
+    <nav>
+      <a href="#overview" class="active" onclick="scrollTo('overview')">Overview</a>
+      <a href="#funnel" onclick="scrollTo('funnel')">Funnel</a>
+      <a href="#scent" onclick="scrollTo('scent')">Scent Profile</a>
+      <a href="#products" onclick="scrollTo('products')">Products</a>
+      <a href="#demographics" onclick="scrollTo('demographics')">Demographics</a>
+      <a href="#space" onclick="scrollTo('space')">Space</a>
+      <a href="#timeline" onclick="scrollTo('timeline')">Timeline</a>
+      <a href="#feed" onclick="scrollTo('feed')">Live Feed</a>
+      <div class="sep"></div>
+      <a href="#" style="color:var(--text3);font-size:.7rem">DEMO — Sample Data</a>
+    </nav>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <div class="topbar">
+      <h1>Dashboard</h1>
+      <div class="meta">
+        <span class="badge demo">DEMO</span>
+        <span style="font-size:.78rem;color:var(--text3)">Sample data</span>
+      </div>
+    </div>
+
+    <div class="filter-bar">
+      <button class="filter-btn" onclick="setFilter('today',this)">Today</button>
+      <button class="filter-btn" onclick="setFilter('7d',this)">7 Days</button>
+      <button class="filter-btn active" onclick="setFilter('30d',this)">30 Days</button>
+      <button class="filter-btn" onclick="setFilter('all',this)">All</button>
+    </div>
+
+    <div class="alert-banner" id="alertBanner">
+      <strong>12 DMs pending</strong> — Check n8n workflow
+    </div>
+
+    <!-- KPI -->
+    <section id="overview">
+      <div class="kpi-grid">
+        <div class="kpi"><div class="top-line"></div><div class="label">Quiz Participants</div><div class="value" id="kpiTotal">--</div><div class="sub" id="kpiTotalSub" style="color:var(--green-500)"></div></div>
+        <div class="kpi"><div class="top-line"></div><div class="label">DM Sent</div><div class="value" id="kpiSent">--</div><div class="sub" id="kpiSentSub" style="color:var(--green-500)"></div></div>
+        <div class="kpi"><div class="top-line"></div><div class="label">Pending</div><div class="value" id="kpiPending">--</div><div class="sub" id="kpiPendingSub" style="color:var(--orange)"></div></div>
+        <div class="kpi"><div class="top-line"></div><div class="label">Promo Codes</div><div class="value" id="kpiPromo">--</div><div class="sub" id="kpiPromoSub" style="color:var(--text3)"></div></div>
+      </div>
+    </section>
+
+    <!-- Funnel -->
+    <section id="funnel" style="margin-bottom:20px">
+      <div class="card">
+        <h3>Funnel Analysis</h3>
+        <div class="desc">Quiz completion to DM delivery conversion</div>
+        <div id="funnelChart"></div>
+      </div>
+    </section>
+
+    <!-- Scent -->
+    <section id="scent">
+      <div class="grid-2">
+        <div class="card"><h3>Scent Profile Distribution</h3><div class="desc">By top_scent result</div><canvas id="scentPie"></canvas></div>
+        <div class="card"><h3>Average Scent Scores</h3><div class="desc">Score range: 0 – 37.5</div><canvas id="scentBar"></canvas></div>
+      </div>
+    </section>
+
+    <!-- Products -->
+    <section id="products">
+      <div class="grid-2">
+        <div class="card"><h3>Product Match Ranking</h3><div class="desc">Top recommended products</div><canvas id="productBar"></canvas></div>
+        <div class="card"><h3>Category Breakdown</h3><div class="desc">By product type</div><canvas id="categoryDoughnut"></canvas></div>
+      </div>
+    </section>
+
+    <!-- Demographics -->
+    <section id="demographics">
+      <div class="grid-3">
+        <div class="card"><h3>Gender</h3><div class="desc">basic_info.gender</div><canvas id="genderPie"></canvas></div>
+        <div class="card"><h3>Age Group</h3><div class="desc">basic_info.age_group</div><canvas id="agePie"></canvas></div>
+        <div class="card"><h3>Gender × Scent</h3><div class="desc">Cross-segment analysis</div><canvas id="genderScentBar"></canvas></div>
+      </div>
+    </section>
+
+    <!-- Space -->
+    <section id="space">
+      <div class="grid-2">
+        <div class="card"><h3>Space Preference</h3><div class="desc">selected_space ratio</div><canvas id="spacePie"></canvas></div>
+        <div class="card"><h3>Space × Scent</h3><div class="desc">Stacked by space type</div><canvas id="spaceBar"></canvas></div>
+      </div>
+    </section>
+
+    <!-- Timeline -->
+    <section id="timeline" style="margin-bottom:16px">
+      <div class="card">
+        <h3>Daily Participation Trend</h3>
+        <div class="desc">Quiz completions over time</div>
+        <canvas id="timelineChart" style="max-height:300px"></canvas>
+      </div>
+    </section>
+
+    <!-- Feed -->
+    <section id="feed">
+      <div class="card">
+        <h3>Live Feed</h3>
+        <div class="desc">Recent quiz completions</div>
+        <div style="overflow-x:auto;margin-top:12px">
+          <table class="data-table">
+            <thead><tr><th>Time</th><th>Subscriber</th><th>Gender</th><th>Age</th><th>Space</th><th>Scent</th><th>Product</th><th>DM</th></tr></thead>
+            <tbody id="feedBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+// ═══ Chart.js Global Defaults (Santokki Style) ═══
+Chart.defaults.font.family = "'Outfit', sans-serif";
+Chart.defaults.font.size = 12;
+Chart.defaults.color = '#78716c';
+
+const SCENT_LABELS = ['FLORAL','GREEN','FRESH','WOODY_INK','WARMING'];
+const SCENT_DISPLAY = ['Floral','Green','Fresh','Woody / Ink','Warming'];
+const SCENT_COLORS = ['#d4a0b9','#4d9b73','#6ba3be','#8b7bb5','#c8875f'];
+const SCENT_BG = ['#d4a0b933','#4d9b7333','#6ba3be33','#8b7bb533','#c8875f33'];
+
+const PRODUCTS = [
+  {id:'RS-001',name:'Morning Mist of Namsan',cat:'room_spray',scent:'GREEN'},
+  {id:'RS-002',name:'Jeju Sea Salt & Mint',cat:'room_spray',scent:'FRESH'},
+  {id:'RS-003',name:'Memory of Tiles',cat:'room_spray',scent:'GREEN'},
+  {id:'BC-001',name:"Princess's Flower Garden",cat:'bedroom_candle',scent:'FLORAL'},
+  {id:'BC-002',name:'Naju Pear Blossom',cat:'bedroom_candle',scent:'FLORAL'},
+  {id:'BC-003',name:'Rain Under Dancheong',cat:'bedroom_candle',scent:'WOODY_INK'},
+  {id:'KC-001',name:"Crown Prince's Study",cat:'kitchen_candle',scent:'WOODY_INK'},
+  {id:'KC-002',name:'Ginger & Citron Warmth',cat:'kitchen_candle',scent:'WARMING'},
+  {id:'KC-003',name:'A Quiet Tea Ceremony',cat:'kitchen_candle',scent:'GREEN'},
+  {id:'CD-001',name:'Ink on Hanji',cat:'car_diffuser',scent:'WOODY_INK'},
+  {id:'CD-002',name:'Black Pine & Amber',cat:'car_diffuser',scent:'WARMING'},
+  {id:'CD-003',name:'Trace of Inkstone',cat:'car_diffuser',scent:'GREEN'}
+];
+const genders=['female','female','female','male','male','non_binary'];
+const ages=['teens','20s','20s','20s','30s','30s','40s','50s_plus'];
+const spaces=['living_bedroom','living_bedroom','living_bedroom','kitchen','kitchen','car'];
+function rnd(a){return a[Math.floor(Math.random()*a.length)]}
+function genDocs(n){const docs=[];const now=Date.now();for(let i=0;i<n;i++){const dt=new Date(now-Math.random()*60*86400000);const g=rnd(genders);const sp=rnd(spaces);const s={FLORAL:0,GREEN:0,FRESH:0,WOODY_INK:0,WARMING:0};const p=rnd(SCENT_LABELS);s[p]=15+Math.random()*20;SCENT_LABELS.forEach(x=>{if(x!==p)s[x]=Math.random()*12});const possible=PRODUCTS.filter(pr=>{if(sp==='living_bedroom')return pr.cat==='room_spray'||pr.cat==='bedroom_candle';if(sp==='kitchen')return pr.cat==='kitchen_candle';return pr.cat==='car_diffuser'});const m=possible.find(pr=>pr.scent===p)||rnd(possible);const sent=Math.random()>.01;docs.push({subscriber_id:'MC_'+Math.random().toString(36).slice(2,10),created_at:dt.toISOString(),basic_info:{gender:g,age_group:rnd(ages)},selected_space:sp,scores:s,result:{top_scent:p,matched_product_id:m.id,matched_product_name_en:m.name,category:m.cat},dm_sent:sent,promo_code:sent?'SANTOKKI-'+Math.random().toString(36).slice(2,6).toUpperCase()+'-15OFF':null})}return docs.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at))}
+
+const allDocs=genDocs(1248);let filteredDocs=[...allDocs];let charts={};
+
+function setFilter(f,btn){document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');const now=new Date();let c=null;if(f==='today')c=new Date(now.getFullYear(),now.getMonth(),now.getDate());else if(f==='7d')c=new Date(now-7*86400000);else if(f==='30d')c=new Date(now-30*86400000);filteredDocs=c?allDocs.filter(d=>new Date(d.created_at)>=c):[...allDocs];renderAll()}
+function renderAll(){renderKPI();renderFunnel();renderScent();renderProducts();renderDemo();renderSpace();renderTimeline();renderFeed()}
+function dc(k){if(charts[k]){charts[k].destroy();delete charts[k]}}
+
+function renderKPI(){
+  const t=filteredDocs.length,s=filteredDocs.filter(d=>d.dm_sent).length,p=t-s,pr=filteredDocs.filter(d=>d.promo_code).length;
+  const rate=t>0?((s/t)*100).toFixed(1):0;
+  const today=new Date();const ts=new Date(today.getFullYear(),today.getMonth(),today.getDate());
+  const td=allDocs.filter(d=>d.created_at&&new Date(d.created_at)>=ts).length;
+  document.getElementById('kpiTotal').textContent=t.toLocaleString();
+  document.getElementById('kpiSent').textContent=s.toLocaleString();
+  document.getElementById('kpiPending').textContent=p.toLocaleString();
+  document.getElementById('kpiPromo').textContent=pr.toLocaleString();
+  document.getElementById('kpiTotalSub').innerHTML=`+${td} today`;
+  document.getElementById('kpiSentSub').innerHTML=`${rate}% completion`;
+  document.getElementById('kpiPendingSub').innerHTML=p>0?'Processing':'All sent';
+  document.getElementById('kpiPromoSub').innerHTML='SANTOKKI-XXXX';
+  const ab=document.getElementById('alertBanner');if(p>5){ab.style.display='flex';ab.querySelector('strong').textContent=p+' DMs pending'}else ab.style.display='none';
+}
+
+function renderFunnel(){
+  const t=filteredDocs.length,s=filteredDocs.filter(d=>d.dm_sent).length;
+  const pct=t>0?Math.round(s/t*100):0;
+  document.getElementById('funnelChart').innerHTML=`
+    <div class="funnel-step" style="opacity:.45"><div class="funnel-label">Keyword comment</div><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:100%;background:var(--gray-200);color:var(--text3);font-style:italic">Phase 2</div></div><div class="funnel-pct" style="color:var(--text3)">—</div></div>
+    <div class="funnel-drop">↓</div>
+    <div class="funnel-step" style="opacity:.45"><div class="funnel-label">Quiz link DM</div><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:100%;background:var(--gray-200);color:var(--text3);font-style:italic">Phase 2</div></div><div class="funnel-pct" style="color:var(--text3)">—</div></div>
+    <div class="funnel-drop">↓</div>
+    <div class="funnel-step"><div class="funnel-label">Quiz completed</div><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:100%;background:var(--green-500)">${t.toLocaleString()}</div></div><div class="funnel-pct" style="color:var(--green-600)">100%</div></div>
+    <div class="funnel-drop">↓ ${100-pct}% drop</div>
+    <div class="funnel-step"><div class="funnel-label">Result DM sent</div><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:${pct}%;background:var(--green-300)">${s.toLocaleString()}</div></div><div class="funnel-pct" style="color:var(--green-500)">${pct}%</div></div>`;
+}
+
+function renderScent(){
+  const cnt={};SCENT_LABELS.forEach(s=>cnt[s]=0);const sm={};const sc={};SCENT_LABELS.forEach(s=>{sm[s]=0;sc[s]=0});
+  filteredDocs.forEach(d=>{if(d.result?.top_scent)cnt[d.result.top_scent]++;if(d.scores)SCENT_LABELS.forEach(s=>{if(d.scores[s]!==undefined){sm[s]+=d.scores[s];sc[s]++}})});
+  dc('scentPie');charts.scentPie=new Chart(document.getElementById('scentPie'),{type:'doughnut',data:{labels:SCENT_DISPLAY,datasets:[{data:SCENT_LABELS.map(s=>cnt[s]),backgroundColor:SCENT_COLORS,borderColor:'#fff',borderWidth:2}]},options:{responsive:true,cutout:'55%',plugins:{legend:{position:'bottom',labels:{padding:14,font:{size:11}}}}}});
+  dc('scentBar');charts.scentBar=new Chart(document.getElementById('scentBar'),{type:'bar',data:{labels:SCENT_DISPLAY,datasets:[{label:'Avg Score',data:SCENT_LABELS.map(s=>sc[s]>0?+(sm[s]/sc[s]).toFixed(1):0),backgroundColor:SCENT_BG,borderColor:SCENT_COLORS,borderWidth:1.5,borderRadius:4}]},options:{responsive:true,scales:{y:{grid:{color:'#e7e5e4'},ticks:{color:'#a8a29e'},max:37.5},x:{grid:{display:false},ticks:{font:{size:10}}}},plugins:{legend:{display:false}}}});
+}
+
+function renderProducts(){
+  const pc={};const pn={};filteredDocs.forEach(d=>{const id=d.result?.matched_product_id;if(id){pc[id]=(pc[id]||0)+1;pn[id]=d.result.matched_product_name_en||id}});
+  const sorted=Object.entries(pc).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  dc('productBar');charts.productBar=new Chart(document.getElementById('productBar'),{type:'bar',data:{labels:sorted.map(([p])=>pn[p]),datasets:[{label:'Matches',data:sorted.map(([,c])=>c),backgroundColor:sorted.map((_,i)=>SCENT_BG[i%5]),borderColor:sorted.map((_,i)=>SCENT_COLORS[i%5]),borderWidth:1.5,borderRadius:4}]},options:{indexAxis:'y',responsive:true,scales:{x:{grid:{color:'#e7e5e4'},ticks:{color:'#a8a29e'}},y:{grid:{display:false},ticks:{font:{size:10}}}},plugins:{legend:{display:false}}}});
+  const cc={};filteredDocs.forEach(d=>{const c=d.result?.category;if(c)cc[c]=(cc[c]||0)+1});
+  const cm={'room_spray':'Room Spray','bedroom_candle':'Bedroom Candle','kitchen_candle':'Kitchen Candle','car_diffuser':'Car Diffuser'};
+  const ck=Object.keys(cm);
+  dc('categoryDoughnut');charts.categoryDoughnut=new Chart(document.getElementById('categoryDoughnut'),{type:'doughnut',data:{labels:ck.map(k=>cm[k]),datasets:[{data:ck.map(k=>cc[k]||0),backgroundColor:SCENT_COLORS.slice(0,4),borderColor:'#fff',borderWidth:2}]},options:{responsive:true,cutout:'55%',plugins:{legend:{position:'bottom',labels:{padding:14,font:{size:11}}}}}});
+}
+
+function renderDemo(){
+  const gc={};filteredDocs.forEach(d=>{const g=d.basic_info?.gender||'unknown';gc[g]=(gc[g]||0)+1});
+  const gl={'female':'Female','male':'Male','non_binary':'Non-binary'};const gk=Object.keys(gc).sort();
+  dc('genderPie');charts.genderPie=new Chart(document.getElementById('genderPie'),{type:'doughnut',data:{labels:gk.map(k=>gl[k]||k),datasets:[{data:gk.map(k=>gc[k]),backgroundColor:['#d4a0b9','#6ba3be','#8b7bb5','#a8a29e'],borderColor:'#fff',borderWidth:2}]},options:{responsive:true,cutout:'55%',plugins:{legend:{position:'bottom',labels:{font:{size:11}}}}}});
+  const ac={};filteredDocs.forEach(d=>{const a=d.basic_info?.age_group||'unknown';ac[a]=(ac[a]||0)+1});
+  const ao=['teens','20s','30s','40s','50s_plus'];const al={'teens':'10s','20s':'20s','30s':'30s','40s':'40s','50s_plus':'50s+'};const ak=ao.filter(k=>ac[k]);
+  dc('agePie');charts.agePie=new Chart(document.getElementById('agePie'),{type:'bar',data:{labels:ak.map(k=>al[k]||k),datasets:[{label:'Count',data:ak.map(k=>ac[k]||0),backgroundColor:'#4d9b7333',borderColor:'#4d9b73',borderWidth:1.5,borderRadius:4}]},options:{responsive:true,scales:{y:{grid:{color:'#e7e5e4'},ticks:{color:'#a8a29e'}},x:{grid:{display:false}}},plugins:{legend:{display:false}}}});
+  const gs={};filteredDocs.forEach(d=>{const g=d.basic_info?.gender;const s=d.result?.top_scent;if(!g||!s)return;if(!gs[g])gs[g]={};gs[g][s]=(gs[g][s]||0)+1});
+  const mg=['female','male'].filter(g=>gs[g]);
+  dc('genderScentBar');charts.genderScentBar=new Chart(document.getElementById('genderScentBar'),{type:'bar',data:{labels:SCENT_DISPLAY,datasets:mg.map((g,i)=>({label:gl[g]||g,data:SCENT_LABELS.map(s=>gs[g]?.[s]||0),backgroundColor:i===0?'#d4a0b944':'#6ba3be44',borderColor:i===0?'#d4a0b9':'#6ba3be',borderWidth:1.5,borderRadius:3}))},options:{responsive:true,scales:{y:{grid:{color:'#e7e5e4'},ticks:{color:'#a8a29e'}},x:{grid:{display:false},ticks:{font:{size:9}}}},plugins:{legend:{labels:{font:{size:11}}}}}});
+}
+
+function renderSpace(){
+  const sc2={};filteredDocs.forEach(d=>{const s=d.selected_space;if(s)sc2[s]=(sc2[s]||0)+1});
+  const sm2={'living_bedroom':'Living / Bedroom','kitchen':'Kitchen','car':'Car'};const sk=Object.keys(sm2).filter(k=>sc2[k]);
+  dc('spacePie');charts.spacePie=new Chart(document.getElementById('spacePie'),{type:'doughnut',data:{labels:sk.map(k=>sm2[k]),datasets:[{data:sk.map(k=>sc2[k]||0),backgroundColor:['#4d9b73','#c8875f','#6ba3be'],borderColor:'#fff',borderWidth:2}]},options:{responsive:true,cutout:'55%',plugins:{legend:{position:'bottom',labels:{font:{size:11}}}}}});
+  const ss={};filteredDocs.forEach(d=>{const sp=d.selected_space;const s=d.result?.top_scent;if(!sp||!s)return;if(!ss[sp])ss[sp]={};ss[sp][s]=(ss[sp][s]||0)+1});
+  dc('spaceBar');charts.spaceBar=new Chart(document.getElementById('spaceBar'),{type:'bar',data:{labels:sk.map(k=>sm2[k]),datasets:SCENT_LABELS.map((s,i)=>({label:SCENT_DISPLAY[i],data:sk.map(k=>ss[k]?.[s]||0),backgroundColor:SCENT_BG[i],borderColor:SCENT_COLORS[i],borderWidth:1.5,borderRadius:3}))},options:{responsive:true,scales:{y:{stacked:true,grid:{color:'#e7e5e4'},ticks:{color:'#a8a29e'}},x:{stacked:true,grid:{display:false}}},plugins:{legend:{labels:{font:{size:10}}}}}});
+}
+
+function renderTimeline(){
+  const dc2={};filteredDocs.forEach(d=>{if(!d.created_at)return;const k=new Date(d.created_at).toISOString().split('T')[0];dc2[k]=(dc2[k]||0)+1});
+  const sorted=Object.entries(dc2).sort((a,b)=>a[0].localeCompare(b[0]));
+  dc('timelineChart');charts.timelineChart=new Chart(document.getElementById('timelineChart'),{type:'line',data:{labels:sorted.map(([d])=>d.slice(5)),datasets:[{label:'Completions',data:sorted.map(([,c])=>c),borderColor:'#2d7a52',backgroundColor:'rgba(45,122,82,0.08)',fill:true,tension:.35,pointRadius:3,pointBackgroundColor:'#2d7a52',pointBorderColor:'#fff',pointBorderWidth:1.5}]},options:{responsive:true,scales:{y:{grid:{color:'#e7e5e4'},ticks:{color:'#a8a29e'},beginAtZero:true},x:{grid:{display:false},ticks:{font:{size:10},maxRotation:45}}},plugins:{legend:{display:false}}}});
+}
+
+function renderFeed(){
+  const body=document.getElementById('feedBody');const recent=filteredDocs.slice(0,30);
+  const sl={'living_bedroom':'Living','kitchen':'Kitchen','car':'Car'};const gl2={'female':'F','male':'M','non_binary':'NB'};
+  body.innerHTML=recent.map(d=>{
+    const t=new Date(d.created_at).toLocaleString('en-GB',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+    const dm=d.dm_sent?'<span class="status-badge sent">Sent</span>':'<span class="status-badge pending">Pending</span>';
+    return `<tr><td style="color:var(--text2);white-space:nowrap">${t}</td><td><code style="font-size:.7rem;color:var(--accent)">${d.subscriber_id.slice(0,10)}</code></td><td>${gl2[d.basic_info?.gender]||'-'}</td><td>${d.basic_info?.age_group||'-'}</td><td>${sl[d.selected_space]||'-'}</td><td>${d.result?.top_scent||'-'}</td><td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.result?.matched_product_name_en||'-'}</td><td>${dm}</td></tr>`
+  }).join('');
+}
+
+function scrollTo(id){document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'start'});document.querySelectorAll('.sidebar nav a').forEach(a=>a.classList.remove('active'));document.querySelector(`a[href="#${id}"]`)?.classList.add('active')}
+
+// Init with 30d
+(function(){const now=new Date();filteredDocs=allDocs.filter(d=>new Date(d.created_at)>=new Date(now-30*86400000));renderAll()})();
+</script>
+</body>
+</html>

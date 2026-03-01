@@ -1,0 +1,152 @@
+{
+    "name": "Santokki - 향 추천 DM 자동화 v5 (Custom Field + Flow)",
+    "nodes": [
+        {
+            "parameters": {
+                "rule": {
+                    "interval": [
+                        {
+                            "field": "seconds",
+                            "secondsInterval": 30
+                        }
+                    ]
+                }
+            },
+            "id": "v5-node-001",
+            "name": "30초마다 실행",
+            "type": "n8n-nodes-base.scheduleTrigger",
+            "typeVersion": 1.2,
+            "position": [
+                240,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "// ============================================\n// Santokki v5 - Firestore 미처리 문서 조회\n// ============================================\n\nconst FIREBASE_PROJECT_ID = 'santokki-f7c72';\nconst SERVICE_ACCOUNT_KEY = require('/home/node/.n8n/firebase-key.json');\n\nconst crypto = require('crypto');\nfunction base64url(str) {\n  return Buffer.from(str).toString('base64').replace(/\\+/g, '-').replace(/\\//g, '_').replace(/=+$/, '');\n}\n\nconst now = Math.floor(Date.now() / 1000);\nconst header = base64url(JSON.stringify({ alg: 'RS256', typ: 'JWT' }));\nconst payload = base64url(JSON.stringify({\n  iss: SERVICE_ACCOUNT_KEY.client_email,\n  scope: 'https://www.googleapis.com/auth/datastore',\n  aud: 'https://oauth2.googleapis.com/token',\n  exp: now + 3600,\n  iat: now\n}));\n\nconst sign = crypto.createSign('RSA-SHA256');\nsign.write(`${header}.${payload}`);\nsign.end();\nconst signature = sign.sign(SERVICE_ACCOUNT_KEY.private_key, 'base64').replace(/\\+/g, '-').replace(/\\//g, '_').replace(/=+$/, '');\nconst jwt = `${header}.${payload}.${signature}`;\n\nconst tokenResponse = await this.helpers.httpRequest({\n  method: 'POST',\n  url: 'https://oauth2.googleapis.com/token',\n  headers: { 'Content-Type': 'application/x-www-form-urlencoded' },\n  body: `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${jwt}`,\n  returnFullResponse: true\n});\nconst accessToken = tokenResponse.body.access_token;\n\nconst firestoreUrl = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents:runQuery`;\nconst queryBody = {\n  structuredQuery: {\n    from: [{ collectionId: 'quiz_results' }],\n    where: {\n      fieldFilter: {\n        field: { fieldPath: 'dm_sent' },\n        op: 'EQUAL',\n        value: { booleanValue: false }\n      }\n    },\n    limit: 10\n  }\n};\n\nconst queryResponse = await this.helpers.httpRequest({\n  method: 'POST',\n  url: firestoreUrl,\n  headers: {\n    'Authorization': `Bearer ${accessToken}`,\n    'Content-Type': 'application/json'\n  },\n  body: queryBody,\n  json: true,\n  returnFullResponse: true\n});\n\nconst docs = queryResponse.body;\nconst results = [];\nfor (const item of docs) {\n  if (!item.document) continue;\n  const doc = item.document;\n  const docId = doc.name.split('/').pop();\n  const fields = doc.fields || {};\n  const parseField = (f) => {\n    if (!f) return null;\n    if (f.stringValue !== undefined) return f.stringValue;\n    if (f.booleanValue !== undefined) return f.booleanValue;\n    if (f.integerValue !== undefined) return parseInt(f.integerValue);\n    if (f.doubleValue !== undefined) return f.doubleValue;\n    if (f.mapValue) {\n      const obj = {};\n      for (const [k, v] of Object.entries(f.mapValue.fields || {})) obj[k] = parseField(v);\n      return obj;\n    }\n    return null;\n  };\n  results.push({\n    json: {\n      _doc_id: docId,\n      _access_token: accessToken,\n      subscriber_id: parseField(fields.subscriber_id),\n      selected_space: parseField(fields.selected_space),\n      scores: parseField(fields.scores),\n      result: parseField(fields.result),\n      basic_info: parseField(fields.basic_info)\n    }\n  });\n}\n\nreturn results.length === 0 ? [] : results;\n"
+            },
+            "id": "v5-node-002",
+            "name": "Firestore 미처리 문서 조회",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                480,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "// ============================================\n// Santokki v5 - 제품 매칭 및 프로모코드 생성\n// ============================================\n\nconst input = $input.item.json;\nconst subscriberId = input.subscriber_id || 'unknown';\nconst result = input.result || {};\nconst accessToken = input._access_token;\nconst docId = input._doc_id;\n\nconst PRODUCTS = {\n  'RS-001': { name: '남산의 새벽 안개', name_en: 'Morning Mist of Namsan', shop_url: 'https://famous-pie-9e1a00.netlify.app/product.html?id=room-001' },\n  'RS-002': { name: '제주 소금과 민트', name_en: 'Jeju Sea Salt & Mint', shop_url: 'https://famous-pie-9e1a00.netlify.app/product.html?id=room-002' },\n  'RS-003': { name: '기와의 기억', name_en: 'Memory of Tiles', shop_url: 'https://famous-pie-9e1a00.netlify.app/product.html?id=room-003' },\n  'BC-001': { name: '공주의 화원', name_en: 'The Princess\\'s Flower Garden', shop_url: 'https://famous-pie-9e1a00.netlify.app/product.html?id=candle-001' },\n  'BC-002': { name: '나주 배꽃의 향연', name_en: 'Naju Pear Blossom', shop_url: 'https://famous-pie-9e1a00.netlify.app/product.html?id=candle-002' },\n  'BC-003': { name: '단청 아래 빗소리', name_en: 'Rain Under Dancheong', shop_url: 'https://famous-pie-9e1a00.netlify.app/product.html?id=candle-003' },\n  'KC-004': { name: '세자의 서재', name_en: 'The Crown Prince\\'s Study', shop_url: 'https://famous-pie-9e1a00.netlify.app/product.html?id=candle-006' },\n  'KC-001': { name: '생강과 유자', name_en: 'Ginger & Citron Warmth', shop_url: 'https://famous-pie-9e1a00.netlify.app/product.html?id=candle-004' },\n  'KC-002': { name: '조용한 찻자리', name_en: 'A Quiet Tea Ceremony', shop_url: 'https://famous-pie-9e1a00.netlify.app/product.html?id=candle-005' },\n  'CD-001': { name: '한지 위 먹향', name_en: 'Ink on Hanji', shop_url: 'https://famous-pie-9e1a00.netlify.app/product.html?id=car-001' },\n  'CD-002': { name: '흑송과 호박', name_en: 'Black Pine & Amber', shop_url: 'https://famous-pie-9e1a00.netlify.app/product.html?id=car-002' },\n  'CD-003': { name: '비취의 날개', name_en: 'Wings of Celadon', shop_url: 'https://famous-pie-9e1a00.netlify.app/product.html?id=car-003' }\n};\n\nconst productId = result.matched_product_id;\nlet product = PRODUCTS[productId] || PRODUCTS['BC-001'];\n\nconst chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';\nlet randomPart = '';\nfor (let i = 0; i < 4; i++) randomPart += chars.charAt(Math.floor(Math.random() * chars.length));\nconst promoCode = `SANTOKKI-${randomPart}-15OFF`;\n\nreturn [{ json: {\n  _doc_id: docId,\n  _access_token: accessToken,\n  subscriber_id: parseInt(subscriberId, 10),\n  product_id: productId,\n  product_name_en: product.name_en,\n  product_name_ko: product.name,\n  product_shop_url: product.shop_url,\n  promo_code: promoCode\n} }];\n"
+            },
+            "id": "v5-node-003",
+            "name": "매칭 데이터 추출",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                720,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "// ============================================\n// Santokki v5 - ManyChat Custom Fields 업데이트\n// ============================================\n\nconst data = $input.item.json;\nconst MANYCHAT_API_KEY = '4433599:c69bab2399cb2e3b7ff0990b6028298b';\n\nconst body = {\n  subscriber_id: data.subscriber_id,\n  fields: [\n    { field_name: \"Quiz_Product_Name\", field_value: data.product_name_en },\n    { field_name: \"Quiz_Product_Url\", field_value: data.product_shop_url },\n    { field_name: \"Quiz_Promo_Code\", field_value: data.promo_code }\n  ]\n};\n\nlet updateSuccess = false;\nlet updateError = null;\n\ntry {\n  const response = await this.helpers.httpRequest({\n    method: 'POST',\n    url: 'https://api.manychat.com/fb/subscriber/setCustomFields',\n    headers: {\n      'Authorization': `Bearer ${MANYCHAT_API_KEY}`,\n      'Content-Type': 'application/json',\n      'Accept': 'application/json'\n    },\n    body: body,\n    json: true,\n    returnFullResponse: true\n  });\n  updateSuccess = response.statusCode >= 200 && response.statusCode < 300;\n  if (!updateSuccess) updateError = JSON.stringify(response.body);\n} catch (error) {\n  updateError = error.message;\n  if (error.response) updateError += ' | ' + JSON.stringify(error.response.body || '');\n}\n\ndata.update_success = updateSuccess;\ndata.update_error = updateError;\n\nreturn [{ json: data }];\n"
+            },
+            "id": "v5-node-004",
+            "name": "ManyChat Custom Fields 업데이트",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                960,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "// ============================================\n// Santokki v5 - ManyChat Flow 실행\n// ============================================\n\nconst data = $input.item.json;\nconst MANYCHAT_API_KEY = '4433599:c69bab2399cb2e3b7ff0990b6028298b';\n\n// TODO: 사용자가 ManyChat에서 새 Flow 생성 후 그 Flow의 NS를 여기에 입력해야 함\n// 예: content20250301045548_364376\nconst FLOW_NS = \"REPLACE_WITH_YOUR_FLOW_NS\";\n\nlet flowSuccess = false;\nlet flowError = null;\n\n// Custom Field 업데이트가 성공했을 때만 Flow 실행\nif (data.update_success && FLOW_NS !== \"REPLACE_WITH_YOUR_FLOW_NS\") {\n  const body = {\n    subscriber_id: data.subscriber_id,\n    flow_ns: FLOW_NS\n  };\n\n  try {\n    const response = await this.helpers.httpRequest({\n      method: 'POST',\n      url: 'https://api.manychat.com/fb/sending/sendFlow',\n      headers: {\n        'Authorization': `Bearer ${MANYCHAT_API_KEY}`,\n        'Content-Type': 'application/json',\n        'Accept': 'application/json'\n      },\n      body: body,\n      json: true,\n      returnFullResponse: true\n    });\n    flowSuccess = response.statusCode >= 200 && response.statusCode < 300;\n    if (!flowSuccess) flowError = JSON.stringify(response.body);\n  } catch (error) {\n    flowError = error.message;\n    if (error.response) flowError += ' | ' + JSON.stringify(error.response.body || '');\n  }\n} else if (!data.update_success) {\n  flowError = \"Skipped due to Custom Field update failure\";\n} else {\n  flowError = \"Please replace REPLACE_WITH_YOUR_FLOW_NS with your actual Flow Namespace string\";\n}\n\ndata.flow_success = flowSuccess;\ndata.flow_error = flowError;\n\nreturn [{ json: data }];\n"
+            },
+            "id": "v5-node-005",
+            "name": "ManyChat Flow 실행",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1200,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "// ============================================\n// Santokki v5 - Firestore 처리완료 표시\n// ============================================\n\nconst data = $input.item.json;\nconst FIREBASE_PROJECT_ID = 'santokki-f7c72';\nconst docId = data._doc_id;\nconst accessToken = data._access_token;\n\nconst updateUrl = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/quiz_results/${docId}?updateMask.fieldPaths=dm_sent&updateMask.fieldPaths=dm_sent_at&updateMask.fieldPaths=promo_code&updateMask.fieldPaths=matched_product_id&updateMask.fieldPaths=matched_product_name`;\n\nconst now = new Date().toISOString();\n\nconst updateBody = {\n  fields: {\n    dm_sent: { booleanValue: true },\n    dm_sent_at: { stringValue: now },\n    promo_code: { stringValue: data.promo_code },\n    matched_product_id: { stringValue: data.product_id || '' },\n    matched_product_name: { stringValue: data.product_name_en || '' }\n  }\n};\n\ntry {\n  await this.helpers.httpRequest({\n    method: 'PATCH',\n    url: updateUrl,\n    headers: {\n      'Authorization': `Bearer ${accessToken}`,\n      'Content-Type': 'application/json'\n    },\n    body: updateBody,\n    json: true\n  });\n} catch (error) {\n  console.error('Firestore update failed:', error.message);\n}\n\nreturn [{ json: {\n  status: data.flow_success ? 'ok' : 'failed',\n  subscriber_id: data.subscriber_id,\n  product: data.product_name_en,\n  promo_code: data.promo_code,\n  flow_sent: data.flow_success,\n  flow_error: data.flow_error\n} }];\n"
+            },
+            "id": "v5-node-006",
+            "name": "Firestore 처리완료 업데이트",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1440,
+                300
+            ]
+        }
+    ],
+    "connections": {
+        "30초마다 실행": {
+            "main": [
+                [
+                    {
+                        "node": "Firestore 미처리 문서 조회",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Firestore 미처리 문서 조회": {
+            "main": [
+                [
+                    {
+                        "node": "매칭 데이터 추출",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "매칭 데이터 추출": {
+            "main": [
+                [
+                    {
+                        "node": "ManyChat Custom Fields 업데이트",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "ManyChat Custom Fields 업데이트": {
+            "main": [
+                [
+                    {
+                        "node": "ManyChat Flow 실행",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "ManyChat Flow 실행": {
+            "main": [
+                [
+                    {
+                        "node": "Firestore 처리완료 업데이트",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "active": false,
+    "settings": {
+        "executionOrder": "v1"
+    },
+    "tags": []
+}

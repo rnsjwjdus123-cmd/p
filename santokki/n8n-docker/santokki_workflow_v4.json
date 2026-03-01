@@ -1,0 +1,152 @@
+{
+    "name": "Santokki - 향 추천 DM 자동화 v4 (Firestore 폴링)",
+    "nodes": [
+        {
+            "parameters": {
+                "rule": {
+                    "interval": [
+                        {
+                            "field": "seconds",
+                            "secondsInterval": 30
+                        }
+                    ]
+                }
+            },
+            "id": "v4-node-001",
+            "name": "30초마다 실행",
+            "type": "n8n-nodes-base.scheduleTrigger",
+            "typeVersion": 1.2,
+            "position": [
+                240,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "// ============================================\n// Santokki v4 - Firestore 미처리 문서 조회\n// Firebase REST API 사용 (Admin SDK 불필요)\n// ============================================\n\nconst FIREBASE_PROJECT_ID = 'santokki-f7c72';\nconst SERVICE_ACCOUNT_KEY = require('/home/node/.n8n/firebase-key.json');\n\n// Google OAuth2 토큰 생성\nconst crypto = require('crypto');\nfunction base64url(str) {\n  return Buffer.from(str).toString('base64')\n    .replace(/\\+/g, '-').replace(/\\//g, '_').replace(/=+$/, '');\n}\n\nconst now = Math.floor(Date.now() / 1000);\nconst header = base64url(JSON.stringify({ alg: 'RS256', typ: 'JWT' }));\nconst payload = base64url(JSON.stringify({\n  iss: SERVICE_ACCOUNT_KEY.client_email,\n  scope: 'https://www.googleapis.com/auth/datastore',\n  aud: 'https://oauth2.googleapis.com/token',\n  exp: now + 3600,\n  iat: now\n}));\n\nconst sign = crypto.createSign('RSA-SHA256');\nsign.write(`${header}.${payload}`);\nsign.end();\nconst signature = sign.sign(SERVICE_ACCOUNT_KEY.private_key, 'base64')\n  .replace(/\\+/g, '-').replace(/\\//g, '_').replace(/=+$/, '');\n\nconst jwt = `${header}.${payload}.${signature}`;\n\n// 1. 액세스 토큰 발급\nconst tokenResponse = await this.helpers.httpRequest({\n  method: 'POST',\n  url: 'https://oauth2.googleapis.com/token',\n  headers: { 'Content-Type': 'application/x-www-form-urlencoded' },\n  body: `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${jwt}`,\n  returnFullResponse: true\n});\n\nconst accessToken = tokenResponse.body.access_token;\nif (!accessToken) {\n  throw new Error('Google 액세스 토큰 발급 실패');\n}\n\n// 2. Firestore에서 dm_sent == false 문서 조회\nconst firestoreUrl = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents:runQuery`;\n\nconst queryBody = {\n  structuredQuery: {\n    from: [{ collectionId: 'quiz_results' }],\n    where: {\n      fieldFilter: {\n        field: { fieldPath: 'dm_sent' },\n        op: 'EQUAL',\n        value: { booleanValue: false }\n      }\n    },\n    limit: 10\n  }\n};\n\nconst queryResponse = await this.helpers.httpRequest({\n  method: 'POST',\n  url: firestoreUrl,\n  headers: {\n    'Authorization': `Bearer ${accessToken}`,\n    'Content-Type': 'application/json'\n  },\n  body: queryBody,\n  json: true,\n  returnFullResponse: true\n});\n\nconst docs = queryResponse.body;\n\n// 3. 결과 파싱\nconst results = [];\nfor (const item of docs) {\n  if (!item.document) continue;\n  const doc = item.document;\n  const docId = doc.name.split('/').pop();\n  const fields = doc.fields || {};\n\n  const parseField = (f) => {\n    if (!f) return null;\n    if (f.stringValue !== undefined) return f.stringValue;\n    if (f.booleanValue !== undefined) return f.booleanValue;\n    if (f.integerValue !== undefined) return parseInt(f.integerValue);\n    if (f.doubleValue !== undefined) return f.doubleValue;\n    if (f.mapValue) {\n      const obj = {};\n      for (const [k, v] of Object.entries(f.mapValue.fields || {})) {\n        obj[k] = parseField(v);\n      }\n      return obj;\n    }\n    return null;\n  };\n\n  results.push({\n    json: {\n      _doc_id: docId,\n      _access_token: accessToken,\n      subscriber_id: parseField(fields.subscriber_id),\n      selected_space: parseField(fields.selected_space),\n      scores: parseField(fields.scores),\n      result: parseField(fields.result),\n      basic_info: parseField(fields.basic_info)\n    }\n  });\n}\n\nif (results.length === 0) {\n  return [];\n}\n\nreturn results;\n"
+            },
+            "id": "v4-node-002",
+            "name": "Firestore 미처리 문서 조회",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                480,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "// ============================================\n// Santokki v4 - 제품 매칭 노드 (최신 라인업)\n// ============================================\n\nconst input = $input.item.json;\n\nconst subscriberId = input.subscriber_id || 'unknown';\nconst selectedSpace = input.selected_space || 'living_bedroom';\nconst scores = input.scores || {};\nconst result = input.result || {};\nconst accessToken = input._access_token;\nconst docId = input._doc_id;\n\n// 제품 데이터베이스 (12종 + 자개 Edition 제외)\nconst PRODUCTS = {\n  'RS-001': { name: '남산의 새벽 안개', name_en: 'Morning Mist of Namsan', category: 'room_spray', shop_url: 'https://famous-pie-9e1a00.netlify.app/product.html?id=room-001', description_en: 'The mystical calm of dawn mist settling over Namsan\\'s pine forest — wet moss and cool earth.' },\n  'RS-002': { name: '제주 소금과 민트', name_en: 'Jeju Sea Salt & Mint', category: 'room_spray', shop_url: 'https://famous-pie-9e1a00.netlify.app/product.html?id=room-002', description_en: 'Cool sea breeze from Jeju\\'s volcanic shores — wild mint and eucalyptus over ocean salt.' },\n  'RS-003': { name: '기와의 기억', name_en: 'Memory of Tiles', category: 'room_spray', shop_url: 'https://famous-pie-9e1a00.netlify.app/product.html?id=room-003', description_en: 'The earthy vitality rising from rain-soaked roof tiles and garden soil after a summer shower.' },\n  'BC-001': { name: '공주의 화원', name_en: 'The Princess\\'s Flower Garden', category: 'bedroom_candle', shop_url: 'https://famous-pie-9e1a00.netlify.app/product.html?id=candle-001', description_en: 'A royal garden in the rain — delicate peonies, pink pepper, and soft amber behind the palace walls.' },\n  'BC-002': { name: '나주 배꽃의 향연', name_en: 'Naju Pear Blossom', category: 'bedroom_candle', shop_url: 'https://famous-pie-9e1a00.netlify.app/product.html?id=candle-002', description_en: 'Pure sweetness of spring pear blossoms — white florals, freesia, and a touch of honey.' },\n  'BC-003': { name: '단청 아래 빗소리', name_en: 'Rain Under Dancheong', category: 'bedroom_candle', shop_url: 'https://famous-pie-9e1a00.netlify.app/product.html?id=candle-003', description_en: 'A serene rain-soaked hanok garden — wet cedar, wild flowers, and warm sandalwood.' },\n  'KC-004': { name: '세자의 서재', name_en: 'The Crown Prince\\'s Study', category: 'kitchen_candle', shop_url: 'https://famous-pie-9e1a00.netlify.app/product.html?id=candle-006', description_en: 'A moonlit scholar\\'s study after rain — ink stone, bergamot, thyme, and distant pine.' },\n  'KC-001': { name: '생강과 유자', name_en: 'Ginger & Citron Warmth', category: 'kitchen_candle', shop_url: 'https://famous-pie-9e1a00.netlify.app/product.html?id=candle-004', description_en: 'Warm ginger-citron tea on a cold winter day — zesty yuzu, lemongrass, and golden honey.' },\n  'KC-002': { name: '조용한 찻자리', name_en: 'A Quiet Tea Ceremony', category: 'kitchen_candle', shop_url: 'https://famous-pie-9e1a00.netlify.app/product.html?id=candle-005', description_en: 'Roasted grain and tea leaves — a calm, earthy moment of quiet conversation.' },\n  'CD-001': { name: '한지 위 먹향', name_en: 'Ink on Hanji', category: 'car_diffuser', shop_url: 'https://famous-pie-9e1a00.netlify.app/product.html?id=car-001', description_en: 'A scholar\\'s study — fresh ink on handmade Hanji paper, cedarwood, and cool metallic notes.' },\n  'CD-002': { name: '흑송과 호박', name_en: 'Black Pine & Amber', category: 'car_diffuser', shop_url: 'https://famous-pie-9e1a00.netlify.app/product.html?id=car-002', description_en: 'Rugged black pine shaped by ocean winds — sandalwood, amber, and spicy herbs.' },\n  'CD-003': { name: '비취의 날개', name_en: 'Wings of Celadon', category: 'car_diffuser', shop_url: 'https://famous-pie-9e1a00.netlify.app/product.html?id=car-003', description_en: 'Where Goryeo celadon meets an English manor garden — green tea, plum blossom, bamboo leaf, and mossy cedarwood.' }\n};\n\nconst SCENT_PROFILES = {\n  FLORAL: { emoji: '🌸', name_en: 'Floral', name_ko: '플로럴' },\n  GREEN: { emoji: '🌲', name_en: 'Green & Earthy', name_ko: '그린/어시' },\n  FRESH: { emoji: '🌊', name_en: 'Fresh', name_ko: '프레시' },\n  WOODY_INK: { emoji: '🖤', name_en: 'Woody & Ink', name_ko: '우디/잉크' },\n  WARMING: { emoji: '🔥', name_en: 'Warming & Spicy', name_ko: '워밍/스파이시' }\n};\n\nconst CATEGORY_NAMES = {\n  room_spray: { ko: '룸 스프레이', en: 'Room Spray' },\n  bedroom_candle: { ko: '침실용 캔들', en: 'Bedroom Candle' },\n  kitchen_candle: { ko: '주방용 캔들', en: 'Kitchen Candle' },\n  car_diffuser: { ko: '차량용 방향제', en: 'Car Diffuser' }\n};\n\nconst productId = result.matched_product_id;\nlet matchedProduct = PRODUCTS[productId] || PRODUCTS['BC-001'];\n\nconst topScent = result.top_scent || 'FLORAL';\nconst scentInfo = SCENT_PROFILES[topScent] || SCENT_PROFILES.FLORAL;\nconst categoryInfo = CATEGORY_NAMES[matchedProduct.category] || CATEGORY_NAMES.bedroom_candle;\n\nreturn [{ json: {\n  _doc_id: docId,\n  _access_token: accessToken,\n  subscriber_id: subscriberId,\n  selected_space: selectedSpace,\n  scores: scores,\n  top_scent: topScent,\n  scent_info: scentInfo,\n  matched_product: {\n    id: productId,\n    name: matchedProduct.name,\n    name_en: matchedProduct.name_en,\n    category: matchedProduct.category,\n    category_ko: categoryInfo.ko,\n    category_en: categoryInfo.en,\n    shop_url: matchedProduct.shop_url,\n    description_en: matchedProduct.description_en\n  }\n} }];\n"
+            },
+            "id": "v4-node-003",
+            "name": "제품 매칭",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                720,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "// ============================================\n// Santokki v4 - 프로모코드 생성 + DM 메시지 조합\n// ============================================\n\nconst data = $input.item.json;\n\nconst chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';\nlet randomPart = '';\nfor (let i = 0; i < 4; i++) {\n  randomPart += chars.charAt(Math.floor(Math.random() * chars.length));\n}\nconst promoCode = `SANTOKKI-${randomPart}-15OFF`;\n\nconst emoji = data.scent_info.emoji;\nconst scentName = data.scent_info.name_en;\nconst shopUrl = data.matched_product.shop_url;\n\nconst dmMessage = `🐰 Your Santokki Scent Quiz result is ready!\\n\\n` +\n  `Your perfect fragrance match is...\\n\\n` +\n  `${emoji} ${data.matched_product.name_en} ${emoji}\\n` +\n  `${data.matched_product.name}\\n\\n` +\n  `🏷️ ${data.matched_product.category_en}\\n` +\n  `💬 ${data.matched_product.description_en}\\n\\n` +\n  `Your scent profile: ${scentName}\\n\\n` +\n  `🛒 Shop now:\\n` +\n  `${shopUrl}\\n\\n` +\n  `🎁 First order discount!\\n` +\n  `Use code: ${promoCode}\\n` +\n  `Get 15% off your purchase 💕\\n\\n` +\n  `📢 Want monthly exclusive offers? Reply \"YES\" to subscribe! 🔔`;\n\nreturn [{ json: {\n  _doc_id: data._doc_id,\n  _access_token: data._access_token,\n  subscriber_id: data.subscriber_id,\n  matched_product: data.matched_product,\n  scent_info: data.scent_info,\n  promo_code: promoCode,\n  dm_message: dmMessage\n} }];\n"
+            },
+            "id": "v4-node-004",
+            "name": "프로모코드 생성 + 메시지 조합",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                960,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "// ============================================\n// Santokki v4 - ManyChat DM 발송\n// ============================================\n\nconst data = $input.item.json;\nconst MANYCHAT_API_KEY = '4433599:c69bab2399cb2e3b7ff0990b6028298b';\n\n// subscriber_id를 숫자로 변환 (ManyChat 요구사항)\nconst subId = parseInt(data.subscriber_id, 10);\n\nconst body = {\n  subscriber_id: subId,\n  data: {\n    version: 'v2',\n    content: {\n      messages: [\n        {\n          type: 'text',\n          text: data.dm_message\n        }\n      ]\n    }\n  }\n};\n\nlet dmSuccess = false;\nlet dmError = null;\nlet dmResponse = null;\n\ntry {\n  const response = await this.helpers.httpRequest({\n    method: 'POST',\n    url: 'https://api.manychat.com/ig/sending/sendContent',\n    headers: {\n      'Authorization': `Bearer ${MANYCHAT_API_KEY}`,\n      'Content-Type': 'application/json',\n      'Accept': 'application/json'\n    },\n    body: body,\n    json: true,\n    returnFullResponse: true\n  });\n  dmResponse = response.body;\n  dmSuccess = response.statusCode >= 200 && response.statusCode < 300;\n  if (!dmSuccess) {\n    dmError = JSON.stringify(response.body);\n  }\n} catch (error) {\n  dmError = error.message;\n  if (error.response) {\n    dmError += ' | Response: ' + JSON.stringify(error.response.body || error.response.data || '');\n  }\n}\n\nreturn [{ json: {\n  _doc_id: data._doc_id,\n  _access_token: data._access_token,\n  subscriber_id: subId,\n  matched_product: data.matched_product,\n  scent_info: data.scent_info,\n  promo_code: data.promo_code,\n  dm_success: dmSuccess,\n  dm_error: dmError,\n  dm_response: dmResponse\n} }];\n"
+            },
+            "id": "v4-node-005",
+            "name": "ManyChat DM 발송",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1200,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "// ============================================\n// Santokki v4 - Firestore 처리완료 표시\n// dm_sent: true, dm_sent_at: timestamp 업데이트\n// ============================================\n\nconst data = $input.item.json;\nconst FIREBASE_PROJECT_ID = 'santokki-f7c72';\nconst docId = data._doc_id;\nconst accessToken = data._access_token;\n\nconst updateUrl = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/quiz_results/${docId}?updateMask.fieldPaths=dm_sent&updateMask.fieldPaths=dm_sent_at&updateMask.fieldPaths=promo_code&updateMask.fieldPaths=matched_product_id&updateMask.fieldPaths=matched_product_name`;\n\nconst now = new Date().toISOString();\n\nconst updateBody = {\n  fields: {\n    dm_sent: { booleanValue: true },\n    dm_sent_at: { stringValue: now },\n    promo_code: { stringValue: data.promo_code },\n    matched_product_id: { stringValue: data.matched_product.id || '' },\n    matched_product_name: { stringValue: data.matched_product.name_en || '' }\n  }\n};\n\ntry {\n  await this.helpers.httpRequest({\n    method: 'PATCH',\n    url: updateUrl,\n    headers: {\n      'Authorization': `Bearer ${accessToken}`,\n      'Content-Type': 'application/json'\n    },\n    body: updateBody,\n    json: true\n  });\n} catch (error) {\n  // Firestore 업데이트 실패해도 로그만 남기고 계속 진행\n  console.error('Firestore update failed:', error.message);\n}\n\nreturn [{ json: {\n  status: data.dm_success ? 'ok' : 'dm_failed',\n  subscriber_id: data.subscriber_id,\n  product: data.matched_product.name_en,\n  scent_profile: data.scent_info.name_en,\n  promo_code: data.promo_code,\n  dm_sent: data.dm_success,\n  dm_error: data.dm_error || null\n} }];\n"
+            },
+            "id": "v4-node-006",
+            "name": "Firestore 처리완료 업데이트",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1440,
+                300
+            ]
+        }
+    ],
+    "connections": {
+        "30초마다 실행": {
+            "main": [
+                [
+                    {
+                        "node": "Firestore 미처리 문서 조회",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Firestore 미처리 문서 조회": {
+            "main": [
+                [
+                    {
+                        "node": "제품 매칭",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "제품 매칭": {
+            "main": [
+                [
+                    {
+                        "node": "프로모코드 생성 + 메시지 조합",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "프로모코드 생성 + 메시지 조합": {
+            "main": [
+                [
+                    {
+                        "node": "ManyChat DM 발송",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "ManyChat DM 발송": {
+            "main": [
+                [
+                    {
+                        "node": "Firestore 처리완료 업데이트",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "active": false,
+    "settings": {
+        "executionOrder": "v1"
+    },
+    "tags": []
+}

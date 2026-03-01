@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+
+# Env (never commit secrets)
+.env
+.env.local
+.env.*.local
+
+# Firebase service account key (contains private key)
+**/firebase-key.json
+santokki/firebase-key.json
+
+# Build / logs
+dist/
+*.log
+.DS_Store
