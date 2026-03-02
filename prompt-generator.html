@@ -28,10 +28,20 @@
     button.secondary { background: var(--card); color: var(--text); border: 1px solid var(--border); }
     button.secondary:hover { background: var(--accent-light); color: var(--accent); }
     .result { margin-top: 24px; }
-    .result-block { background: var(--accent-light); border: 1px solid #b3d7c7; border-radius: 8px; padding: 14px 18px; margin-bottom: 12px; position: relative; }
-    .result-block h3 { font-size: 0.85rem; color: var(--accent); margin-bottom: 8px; }
-    .result-block pre { white-space: pre-wrap; word-break: break-word; font-size: 0.85rem; color: var(--text); }
-    .copy-btn { position: absolute; top: 12px; right: 12px; padding: 6px 12px; font-size: 0.75rem; }
+    .result-block { background: var(--accent-light); border: 1px solid #b3d7c7; border-radius: 8px; margin-bottom: 8px; overflow: hidden; }
+    .result-block h3 { font-size: 0.85rem; color: var(--accent); margin: 0; }
+    .result-block pre { white-space: pre-wrap; word-break: break-word; font-size: 0.85rem; color: var(--text); margin: 0; }
+    .copy-btn { padding: 6px 12px; font-size: 0.75rem; flex-shrink: 0; }
+    .result-toggle-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 14px; cursor: pointer; user-select: none; }
+    .result-toggle-header:hover { background: rgba(30,92,58,.06); }
+    .result-toggle-header .title-wrap { flex: 1; min-width: 0; }
+    .result-toggle-header .result-toggle-icon { color: var(--text2); font-size: 0.7rem; transition: transform .2s ease; flex-shrink: 0; }
+    .result-toggle.open .result-toggle-icon { transform: rotate(0deg); }
+    .result-toggle:not(.open) .result-toggle-icon { transform: rotate(-90deg); }
+    .result-toggle-body { max-height: 0; overflow: hidden; transition: max-height .25s ease; }
+    .result-toggle.open .result-toggle-body { max-height: 1200px; }
+    .result-toggle-body-inner { padding: 0 14px 14px; padding-top: 0; }
+    .result-toggle-body pre { padding: 10px 0 4px; }
     .error { background: #fef2f2; border-color: #fecaca; color: #dc2626; }
     .loading { opacity: 0.7; pointer-events: none; }
   </style>
@@ -83,20 +93,65 @@
   <div id="resultArea" class="result" style="display:none">
     <div class="card">
       <h2>생성 결과</h2>
-      <div id="resultOptimal" class="result-block" style="display:none">
-        <h3>최적 상품</h3>
-        <pre id="outOptimal"></pre>
-        <button class="copy-btn secondary" data-copy="outOptimal">복사</button>
+      <p style="font-size:0.8rem;color:var(--text2);margin-bottom:12px">제목을 클릭하면 펼치거나 접을 수 있어요.</p>
+
+      <div id="resultOptimal" class="result-block result-toggle open" style="display:none">
+        <div class="result-toggle-header">
+          <div class="title-wrap"><h3>최적 상품</h3></div>
+          <button type="button" class="copy-btn secondary" data-copy="outOptimal">복사</button>
+          <span class="result-toggle-icon" aria-hidden="true">▼</span>
+        </div>
+        <div class="result-toggle-body"><div class="result-toggle-body-inner"><pre id="outOptimal"></pre></div></div>
       </div>
-      <div id="resultAd" class="result-block" style="display:none">
-        <h3>15초 광고 스크립트</h3>
-        <pre id="outAd"></pre>
-        <button class="copy-btn secondary" data-copy="outAd">복사</button>
+
+      <div id="resultAd" class="result-block result-toggle" style="display:none">
+        <div class="result-toggle-header">
+          <div class="title-wrap"><h3>15초 광고 스크립트</h3></div>
+          <button type="button" class="copy-btn secondary" data-copy="outAd">복사</button>
+          <span class="result-toggle-icon" aria-hidden="true">▼</span>
+        </div>
+        <div class="result-toggle-body"><div class="result-toggle-body-inner"><pre id="outAd"></pre></div></div>
       </div>
-      <div id="resultFeed" class="result-block" style="display:none">
-        <h3>게시글용 카피 (캡션 + 해시태그)</h3>
-        <pre id="outFeed"></pre>
-        <button class="copy-btn secondary" data-copy="outFeed">복사</button>
+
+      <div id="resultFeed" class="result-block result-toggle" style="display:none">
+        <div class="result-toggle-header">
+          <div class="title-wrap"><h3>게시글용 카피 (캡션 + 해시태그)</h3></div>
+          <button type="button" class="copy-btn secondary" data-copy="outFeed">복사</button>
+          <span class="result-toggle-icon" aria-hidden="true">▼</span>
+        </div>
+        <div class="result-toggle-body"><div class="result-toggle-body-inner"><pre id="outFeed"></pre></div></div>
+      </div>
+
+      <div id="resultSeo" class="result-block result-toggle" style="display:none">
+        <div class="result-toggle-header">
+          <div class="title-wrap"><h3>SEO 게시글 (키워드·이미지 경로)</h3></div>
+          <button type="button" class="copy-btn secondary" data-copy="outSeo">복사</button>
+          <span class="result-toggle-icon" aria-hidden="true">▼</span>
+        </div>
+        <div class="result-toggle-body"><div class="result-toggle-body-inner"><p style="font-size:0.8rem;color:var(--text2);margin-bottom:6px">블로그·SNS용 제목·본문·해시태그 + assets 이미지 경로.</p><pre id="outSeo"></pre></div></div>
+      </div>
+
+      <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">
+        <button type="button" id="btnFormat" class="secondary" style="display:none">인스타·블로그용으로 예쁘게 만들기</button>
+        <p style="font-size:0.8rem;color:var(--text2);margin-top:8px">위 결과를 바탕으로 인스타 캡션·네이버 블로그에 바로 붙여넣기 좋은 형태로 다시 만들어요.</p>
+      </div>
+
+      <div id="resultInstagram" class="result-block result-toggle" style="display:none;margin-top:12px">
+        <div class="result-toggle-header">
+          <div class="title-wrap"><h3>📷 Instagram용 (바로 붙여넣기)</h3></div>
+          <button type="button" class="copy-btn secondary" data-copy="outInstagram">복사</button>
+          <span class="result-toggle-icon" aria-hidden="true">▼</span>
+        </div>
+        <div class="result-toggle-body"><div class="result-toggle-body-inner"><pre id="outInstagram"></pre></div></div>
+      </div>
+
+      <div id="resultNaver" class="result-block result-toggle" style="display:none">
+        <div class="result-toggle-header">
+          <div class="title-wrap"><h3>📝 네이버 블로그용 (바로 붙여넣기)</h3></div>
+          <button type="button" class="copy-btn secondary" data-copy="outNaver">복사</button>
+          <span class="result-toggle-icon" aria-hidden="true">▼</span>
+        </div>
+        <div class="result-toggle-body"><div class="result-toggle-body-inner"><pre id="outNaver"></pre></div></div>
       </div>
     </div>
   </div>
@@ -108,6 +163,8 @@
 
   <script>
     const API_BASE = ''; // same origin
+    let lastGeneratedResult = null; // 앞선 프롬프트 생성 결과 (예쁘게 만들기용)
+    let lastGeneratedStats = null;   // 대시보드 입력값 (인기 향·제품) — API가 최적 결과 내도록 전달
 
     document.getElementById('btnFirebase').onclick = async () => {
       const statusEl = document.getElementById('firebaseStatus');
@@ -119,6 +176,9 @@
       const errWrap = document.getElementById('errorArea');
       errWrap.style.display = 'none';
       wrap.style.display = 'none';
+      document.getElementById('btnFormat').style.display = 'none';
+      document.getElementById('resultInstagram').style.display = 'none';
+      document.getElementById('resultNaver').style.display = 'none';
       try {
         const res = await fetch(API_BASE + '/api/stats-from-firebase');
         const data = await res.json();
@@ -147,10 +207,14 @@
           : String(genData.optimalProduct || '-');
         document.getElementById('outAd').textContent = genData.adScript15s || '-';
         document.getElementById('outFeed').textContent = genData.feedPostCopy || '-';
+        setSeoBlock(genData.seoPost);
         document.getElementById('resultOptimal').style.display = 'block';
         document.getElementById('resultAd').style.display = 'block';
         document.getElementById('resultFeed').style.display = 'block';
         wrap.style.display = 'block';
+        lastGeneratedResult = genData;
+        lastGeneratedStats = data.stats || null;
+        document.getElementById('btnFormat').style.display = 'inline-block';
         statusEl.textContent = 'Firebase 통계(' + data.count + '명) 기준으로 생성 완료.';
         statusEl.style.color = 'var(--accent)';
       } catch (e) {
@@ -193,6 +257,9 @@
       const errWrap = document.getElementById('errorArea');
       errWrap.style.display = 'none';
       wrap.style.display = 'none';
+      document.getElementById('btnFormat').style.display = 'none';
+      document.getElementById('resultInstagram').style.display = 'none';
+      document.getElementById('resultNaver').style.display = 'none';
       document.body.classList.add('loading');
 
       try {
@@ -215,11 +282,14 @@
           : String(data.optimalProduct || '-');
         document.getElementById('outAd').textContent = data.adScript15s || '-';
         document.getElementById('outFeed').textContent = data.feedPostCopy || '-';
-
+        setSeoBlock(data.seoPost);
         document.getElementById('resultOptimal').style.display = 'block';
         document.getElementById('resultAd').style.display = 'block';
         document.getElementById('resultFeed').style.display = 'block';
         wrap.style.display = 'block';
+        lastGeneratedResult = data;
+        lastGeneratedStats = stats;
+        document.getElementById('btnFormat').style.display = 'inline-block';
       } catch (e) {
         document.body.classList.remove('loading');
         document.getElementById('errorText').textContent = e.message;
@@ -227,8 +297,85 @@
       }
     };
 
+    document.getElementById('btnFormat').onclick = async () => {
+      if (!lastGeneratedResult) return;
+      const btn = document.getElementById('btnFormat');
+      btn.disabled = true;
+      btn.textContent = '만들어지는 중…';
+      const opt = Array.isArray(lastGeneratedResult.optimalProduct) ? lastGeneratedResult.optimalProduct[0] : lastGeneratedResult.optimalProduct;
+      const productName = (opt && (opt.name || opt.nameKo)) || '';
+      try {
+        const res = await fetch(API_BASE + '/api/format-for-social', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            feedPostCopy: lastGeneratedResult.feedPostCopy || '',
+            seoPost: lastGeneratedResult.seoPost || {},
+            productName: productName,
+            topScents: (lastGeneratedStats && lastGeneratedStats.topScents) || [],
+            topProducts: (lastGeneratedStats && lastGeneratedStats.topProducts) || []
+          })
+        });
+        const text = await res.text();
+        let data = {};
+        try {
+          data = text.startsWith('{') ? JSON.parse(text) : {};
+        } catch (_) {
+          if (text.trim().toLowerCase().startsWith('<!doctype') || text.trim().startsWith('<')) {
+            document.getElementById('errorText').textContent = 'API 서버에 연결되지 않았습니다. 이 기능은 Node 서버가 필요해요.\n\n로컬에서 사용하려면: p 폴더에서 npm run start:api 를 실행한 뒤, http://localhost:7000/prompt-generator.html 로 접속해 주세요.';
+          } else {
+            document.getElementById('errorText').textContent = '응답을 읽을 수 없습니다: ' + text.slice(0, 200);
+          }
+          document.getElementById('errorArea').style.display = 'block';
+          btn.disabled = false;
+          btn.textContent = '인스타·블로그용으로 예쁘게 만들기';
+          return;
+        }
+        btn.disabled = false;
+        btn.textContent = '인스타·블로그용으로 예쁘게 만들기';
+        if (!res.ok) {
+          document.getElementById('errorText').textContent = data.detail || data.error || '포맷 실패';
+          document.getElementById('errorArea').style.display = 'block';
+          return;
+        }
+        document.getElementById('outInstagram').textContent = data.instagramCaption || '';
+        document.getElementById('resultInstagram').style.display = 'block';
+        const nb = data.naverBlogPost || {};
+        const naverText = ['제목: ' + (nb.title || ''), '메타 설명: ' + (nb.metaDescription || ''), '', '본문:', (nb.body || '')].join('\n');
+        document.getElementById('outNaver').textContent = naverText;
+        document.getElementById('resultNaver').style.display = 'block';
+      } catch (e) {
+        btn.disabled = false;
+        btn.textContent = '인스타·블로그용으로 예쁘게 만들기';
+        document.getElementById('errorText').textContent = e.message;
+        document.getElementById('errorArea').style.display = 'block';
+      }
+    };
+
+    function setSeoBlock(seoPost) {
+      const block = document.getElementById('resultSeo');
+      const out = document.getElementById('outSeo');
+      if (!seoPost || typeof seoPost !== 'object') {
+        block.style.display = 'none';
+        return;
+      }
+      const lines = [
+        '제목: ' + (seoPost.title || ''),
+        '메타 설명: ' + (seoPost.metaDescription || ''),
+        '',
+        '본문:',
+        (seoPost.body || ''),
+        '',
+        '사용 이미지 (assets 폴더): ' + (seoPost.suggestedImage || ''),
+        '해시태그: ' + (seoPost.hashtags || '')
+      ];
+      out.textContent = lines.join('\n');
+      block.style.display = 'block';
+    }
+
     document.querySelectorAll('[data-copy]').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
         const id = btn.getAttribute('data-copy');
         const el = document.getElementById(id);
         if (el) {
@@ -237,6 +384,13 @@
           setTimeout(() => { btn.textContent = '복사'; }, 1500);
         }
       });
+    });
+
+    document.getElementById('resultArea').addEventListener('click', (e) => {
+      const header = e.target.closest('.result-toggle-header');
+      if (!header || e.target.closest('button[data-copy]')) return;
+      const toggle = header.closest('.result-toggle');
+      if (toggle) toggle.classList.toggle('open');
     });
   </script>
 </body>

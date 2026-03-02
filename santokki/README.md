@@ -2,6 +2,8 @@
 
 유럽(영국) 시장을 타겟으로 한 한국 홈 프래그런스 브랜드 **Santokki**의 마케팅 자동화 시스템입니다.
 
+> **전체 개요·실행 방법·배포 URL**은 상위 **루트 [README.md](../README.md)** 참고.
+
 ---
 
 ## ✨ 전체 흐름
@@ -58,6 +60,7 @@ santokki/
 │   ├── firebase-key.json          # Firestore 인증키
 │   └── santokki_workflow_v4.json  # 워크플로우 (Firestore 폴링)
 │
+├── docs/                          ← 설문·매칭 계획서, 회의록, 제품 라인업, 퀴즈 질문 등
 ├── firebase-key.json              ← Firestore 서비스 계정 키
 ├── privacy.html                   ← 개인정보 처리방침
 ├── .env / .env.example            ← 환경변수
@@ -289,15 +292,14 @@ Q15: 주 향 +4.5, 부 향 +1.5 (1.5배 가중치)
 
 ---
 
-## 🔗 주요 URL
+## 🔗 참고 링크
 
 | 항목 | URL |
 |------|-----|
-| 퀴즈 페이지 | https://santokki-f7c72.web.app |
 | Firebase Console | https://console.firebase.google.com/project/santokki-f7c72 |
-| n8n (로컬) | http://localhost:5678 |
-| 자사몰 (Netlify) | https://comforting-snickerdoodle-5ce097.netlify.app |
 | Instagram | https://www.instagram.com/santokki.official/ |
+
+(퀴즈·대시보드·n8n·쇼핑몰 URL은 루트 [README.md](../README.md) § 배포·접속 주소 참고.)
 
 ---
 
