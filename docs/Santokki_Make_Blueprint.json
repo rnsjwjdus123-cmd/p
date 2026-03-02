@@ -1,0 +1,125 @@
+{
+  "name": "Santokki — Firestore 퀴즈 결과 → SNS 문구·이미지 생성 → 텔레그램 전송",
+  "description": "Firebase Firestore quiz_results 컬렉션에 새 문서가 추가될 때, OpenAI로 인스타/스레드/X용 홍보 문구 생성 후 상품 이미지 URL과 함께 텔레그램으로 전송합니다.",
+  "metadata": {
+    "santokki": {
+      "firestore": {
+        "collectionId": "quiz_results",
+        "documentFields": [
+          "subscriber_id",
+          "created_at",
+          "basic_info.gender",
+          "basic_info.age_group",
+          "selected_space",
+          "answers",
+          "scores",
+          "result.top_scent",
+          "result.matched_product_id",
+          "result.matched_product_name",
+          "result.matched_product_name_en",
+          "result.category"
+        ]
+      },
+      "baseUrl": "https://famous-pie-9e1a00.netlify.app",
+      "productIdToImage": {
+        "room-001": "assets/Mornig Mist of Namsan.png",
+        "room-002": "assets/Jeju Sea Salt & Mint.png",
+        "room-003": "assets/Memory of Tiles.png",
+        "diffuser-001": "assets/The king's Room.png",
+        "diffuser-002": "assets/The Queen's Room.png",
+        "candle-001": "assets/The Princess's Flower Garden.png",
+        "candle-002": "assets/Naju Pear Blossom.png",
+        "candle-003": "assets/Ginger & Citron Warmth.png",
+        "candle-004": "assets/The Rainsound under the Dancheong.png",
+        "candle-005": "assets/The korean Jangdokdae.png",
+        "candle-006": "assets/The Crown Prince's Study.png",
+        "car-001": "assets/Ink on Hangi.png",
+        "car-002": "assets/Black Pine & Amber Edition.png",
+        "car-003": "assets/Trace of Inkstone.png"
+      }
+    }
+  },
+  "flow": [
+    {
+      "id": 1,
+      "module": "GoogleCloudFirestore/WatchDocuments",
+      "version": 1,
+      "mapper": {
+        "collectionId": "quiz_results",
+        "orderBy": "created_at",
+        "orderDirection": "desc",
+        "limit": 1
+      },
+      "metadata": {
+        "expect": [
+          { "name": "id", "type": "string", "label": "Document ID", "required": true },
+          { "name": "data", "type": "object", "label": "Document data", "required": true }
+        ]
+      },
+      "designer": { "x": 200, "y": 80 }
+    },
+    {
+      "id": 2,
+      "module": "OpenAI/CreateCompletion",
+      "version": 1,
+      "mapper": {
+        "model": "gpt-4o-mini",
+        "temperature": 0.32,
+        "max_tokens": 1200,
+        "prompt": "You are a copywriter for Santokki, a Korean fragrance brand targeting the European market. Tone: elegant, minimal, culturally refined (Korean heritage + British sensibility). No hype; subtle luxury.\n\n**Input — scent quiz result:**\n- Top scent profile: {{1.result.top_scent}}\n- Matched product (EN): {{1.result.matched_product_name_en}}\n- Matched product (KO): {{1.result.matched_product_name}}\n- Category: {{1.result.category}}\n- Gender: {{1.basic_info.gender}}\n- Space: {{1.selected_space}}\n- Scores: {{1.scores}}\n\n**Tasks:** Generate three short promotional texts (English) for the matched product, keeping Santokki brand voice:\n1. **instagram** — 1–2 sentences, 1–2 tasteful emojis, hashtags at end (~120 words).\n2. **threads** — Slightly conversational, same tone (~80 words).\n3. **twitter** — Concise, under 280 characters, no hashtag overload.\n\nAlso return the **product image path** for this product (use only this exact mapping):\nroom-001→assets/Mornig Mist of Namsan.png, room-002→assets/Jeju Sea Salt & Mint.png, room-003→assets/Memory of Tiles.png, diffuser-001→assets/The king's Room.png, diffuser-002→assets/The Queen's Room.png, candle-001→assets/The Princess's Flower Garden.png, candle-002→assets/Naju Pear Blossom.png, candle-003→assets/Ginger & Citron Warmth.png, candle-004→assets/The Rainsound under the Dancheong.png, candle-005→assets/The korean Jangdokdae.png, candle-006→assets/The Crown Prince's Study.png, car-001→assets/Ink on Hangi.png, car-002→assets/Black Pine & Amber Edition.png, car-003→assets/Trace of Inkstone.png.\n\nOutput valid JSON only, no markdown:\n{\"instagram\": \"...\", \"threads\": \"...\", \"twitter\": \"...\", \"productImagePath\": \"assets/...\"}"
+      },
+      "metadata": {
+        "expect": [
+          { "name": "choices", "type": "array", "label": "OpenAI response" }
+        ]
+      },
+      "designer": { "x": 200, "y": 260 }
+    },
+    {
+      "id": 3,
+      "module": "Tools/ParseJSON",
+      "version": 1,
+      "mapper": {
+        "json": "{{2.choices[0].message.content}}"
+      },
+      "metadata": {
+        "expect": [
+          { "name": "instagram", "type": "string" },
+          { "name": "threads", "type": "string" },
+          { "name": "twitter", "type": "string" },
+          { "name": "productImagePath", "type": "string" }
+        ]
+      },
+      "designer": { "x": 200, "y": 380 }
+    },
+    {
+      "id": 4,
+      "module": "Tools/SetVariable",
+      "version": 1,
+      "mapper": {
+        "name": "imageUrl",
+        "value": "https://famous-pie-9e1a00.netlify.app/{{3.productImagePath}}"
+      },
+      "metadata": {},
+      "designer": { "x": 200, "y": 500 }
+    },
+    {
+      "id": 5,
+      "module": "Telegram/SendMessage",
+      "version": 1,
+      "mapper": {
+        "chatId": "YOUR_TELEGRAM_CHAT_ID",
+        "text": "🕯 Santokki — New quiz result\n\n📸 Image: {{4.imageUrl}}\n\n📷 Instagram:\n{{3.instagram}}\n\n🧵 Threads:\n{{3.threads}}\n\n𝕏 Twitter:\n{{3.twitter}}",
+        "parseMode": "HTML",
+        "disableWebPagePreview": false
+      },
+      "metadata": {},
+      "designer": { "x": 200, "y": 620 }
+    }
+  ],
+  "version": 1,
+  "scheduling": {
+    "type": "immediately"
+  },
+  "idSequence": 6
+}
