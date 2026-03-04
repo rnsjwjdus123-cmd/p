@@ -4,7 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Santokki Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -17,10 +19,10 @@
   --red:#dc2626;--orange:#ea580c;--text:#1c1917;--text2:#57534e;--text3:#a8a29e;
   --border:#e7e5e4;--radius:8px;
   --font-display:'Cormorant Garamond',Georgia,serif;
-  --font-body:'Outfit',-apple-system,sans-serif;
+  --font-body:'Outfit','Noto Sans KR',-apple-system,sans-serif;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--font-body);font-weight:400;color:var(--text);background:var(--white);line-height:1.6;-webkit-font-smoothing:antialiased}
+body{font-family:var(--font-body);font-weight:500;color:var(--text);background:var(--white);line-height:1.6;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 
 /* ── Layout ──────────────────────────────────────── */
 .layout{display:flex;min-height:100vh}
@@ -31,8 +33,8 @@ body{font-family:var(--font-body);font-weight:400;color:var(--text);background:v
 .sidebar .logo-icon .ear.l{transform:rotate(-18deg) translate(-5px, -2px)}
 .sidebar .logo-icon .ear.r{transform:rotate(18deg) translate(5px, -2px)}
 .sidebar .logo span{font-family:var(--font-display);font-size:1.35rem;font-weight:600;color:var(--gray-800);letter-spacing:.02em}
-.sidebar nav a{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--radius);color:var(--gray-500);text-decoration:none;font-size:.82rem;font-weight:500;transition:.15s;margin-bottom:1px}
-.sidebar nav a:hover{background:var(--off-white);color:var(--gray-700)}
+.sidebar nav a{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius);color:var(--gray-600);text-decoration:none;font-size:.85rem;font-weight:600;transition:.15s;margin-bottom:1px}
+.sidebar nav a:hover{background:var(--off-white);color:var(--gray-800)}
 .sidebar nav a.active{background:var(--accent-light);color:var(--accent)}
 .sidebar .sep{height:1px;background:var(--border);margin:14px 0}
 .main{flex:1;margin-left:220px;padding:28px 36px 60px;max-width:calc(100% - 220px)}
@@ -52,26 +54,28 @@ body{font-family:var(--font-body);font-weight:400;color:var(--text);background:v
 .filter-btn:hover{border-color:var(--gray-300);color:var(--gray-700)}
 .filter-btn.active{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
 
-/* ── KPI Cards ───────────────────────────────────── */
-.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
-.kpi{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:18px 22px;position:relative;transition:box-shadow .2s}
-.kpi:hover{box-shadow:0 2px 12px rgba(0,0,0,.04)}
-.kpi .top-line{height:2px;border-radius:2px;margin-bottom:14px}
-.kpi:nth-child(1) .top-line{background:var(--green-500)}
-.kpi:nth-child(2) .top-line{background:var(--green-300)}
-.kpi:nth-child(3) .top-line{background:var(--orange)}
-.kpi:nth-child(4) .top-line{background:var(--green-600)}
-.kpi .label{font-size:.72rem;color:var(--text3);font-weight:500;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em}
-.kpi .value{font-family:var(--font-display);font-size:2rem;font-weight:600;color:var(--gray-800);letter-spacing:-.02em}
-.kpi .sub{font-size:.72rem;margin-top:4px;font-weight:500}
+/* ── KPI Cards (card style: icon + title + value + trend badge + desc) ─── */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-bottom:28px}
+.kpi{background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,.04);transition:box-shadow .2s}
+.kpi:hover{box-shadow:0 4px 12px rgba(0,0,0,.06)}
+.kpi .kpi-head{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.kpi .kpi-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;background:var(--off-white);border:1px solid var(--gray-100);color:var(--gray-600)}
+.kpi .label{font-size:.8rem;font-weight:600;color:var(--gray-600);letter-spacing:.01em}
+.kpi .kpi-value-row{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.kpi .value{font-family:var(--font-display);font-size:2rem;font-weight:600;color:var(--gray-800);letter-spacing:-.02em;line-height:1.2}
+.kpi .trend-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:.72rem;font-weight:600}
+.kpi .trend-badge.up{background:#f0fdf4;color:#166534}
+.kpi .trend-badge.neutral{background:var(--off-white);color:var(--gray-500)}
+.kpi .trend-badge.warn{background:#fff7ed;color:var(--orange)}
+.kpi .sub{font-size:.75rem;color:var(--text3);font-weight:500;line-height:1.4}
 
-/* ── Cards ────────────────────────────────────────── */
-.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
-.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}
-.card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:22px;transition:box-shadow .2s}
-.card:hover{box-shadow:0 2px 12px rgba(0,0,0,.04)}
-.card h3{font-family:var(--font-body);font-size:.85rem;font-weight:600;color:var(--gray-700);margin-bottom:3px}
-.card .desc{font-size:.72rem;color:var(--text3);margin-bottom:18px}
+/* ── Cards (no box, subtle divider) ────────────────── */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-bottom:20px}
+.card{background:transparent;border:none;border-bottom:1px solid var(--border);border-radius:0;padding:24px 0;transition:opacity .2s}
+.card:hover{opacity:.95}
+.card h3{font-family:var(--font-display);font-size:1rem;font-weight:600;color:var(--gray-800);margin-bottom:6px;letter-spacing:.01em}
+.card .desc{font-size:.78rem;color:var(--text3);margin-bottom:18px;font-weight:500}
 .card canvas{max-height:260px}
 
 /* ── Alert ────────────────────────────────────────── */
@@ -103,7 +107,8 @@ body{font-family:var(--font-body);font-weight:400;color:var(--text);background:v
 @keyframes spin{to{transform:rotate(360deg)}}
 
 /* ── Responsive ───────────────────────────────────── */
-@media(max-width:1100px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.grid-2,.grid-3{grid-template-columns:1fr}}
+@media(max-width:1100px){.kpi-grid{grid-template-columns:repeat(2,1fr);gap:16px}.grid-2,.grid-3{grid-template-columns:1fr}}
+@media(max-width:560px){.kpi-grid{grid-template-columns:1fr}}
 @media(max-width:768px){.sidebar{display:none}.main{margin-left:0;padding:16px;max-width:100%}}
 </style>
 </head>
@@ -123,16 +128,16 @@ body{font-family:var(--font-body);font-weight:400;color:var(--text);background:v
       <span>Santokki</span>
     </div>
     <nav>
-      <a href="#overview" class="active" onclick="scrollTo('overview')">📊 전체 현황</a>
-      <a href="#funnel" onclick="scrollTo('funnel')">🔽 퍼널 분석</a>
-      <a href="#scent" onclick="scrollTo('scent')">🌸 향 프로필</a>
-      <a href="#products" onclick="scrollTo('products')">🛍️ 제품 매칭</a>
-      <a href="#demographics" onclick="scrollTo('demographics')">👥 인구통계</a>
-      <a href="#space" onclick="scrollTo('space')">🏠 공간 선호</a>
-      <a href="#timeline" onclick="scrollTo('timeline')">📈 참여 추이</a>
-      <a href="#feed" onclick="scrollTo('feed')">⚡ 실시간 피드</a>
+      <a href="#overview" class="active" onclick="scrollTo('overview')">전체 현황</a>
+      <a href="#funnel" onclick="scrollTo('funnel')">퍼널 분석</a>
+      <a href="#scent" onclick="scrollTo('scent')">향 프로필</a>
+      <a href="#products" onclick="scrollTo('products')">제품 매칭</a>
+      <a href="#demographics" onclick="scrollTo('demographics')">인구통계</a>
+      <a href="#space" onclick="scrollTo('space')">공간 선호</a>
+      <a href="#timeline" onclick="scrollTo('timeline')">참여 추이</a>
+      <a href="#feed" onclick="scrollTo('feed')">실시간 피드</a>
       <div class="sep"></div>
-      <a href="#" onclick="loadData()" style="color:var(--accent)">🔄 데이터 새로고침</a>
+      <a href="#" onclick="loadData()" style="color:var(--accent)">데이터 새로고침</a>
     </nav>
   </aside>
 
@@ -157,35 +162,54 @@ body{font-family:var(--font-body);font-weight:400;color:var(--text);background:v
 
     <!-- Alert Banner -->
     <div class="alert-banner" id="alertBanner">
-      ⚠️ <strong>DM 미발송 <span id="alertCount">0</span>건</strong> — n8n 워크플로우를 확인하세요
+      <strong>DM 미발송 <span id="alertCount">0</span>건</strong> — n8n 워크플로우를 확인하세요
     </div>
 
     <!-- ═══ Section: KPI ═══ -->
     <section id="overview">
       <div class="kpi-grid">
         <div class="kpi">
-          <div class="top-line"></div>
-          <div class="label">퀴즈 총 참여자</div>
-          <div class="value" id="kpiTotal">--</div>
-          <div class="sub" id="kpiTotalSub" style="color:var(--green-500)">로딩 중...</div>
+          <div class="kpi-head">
+            <div class="kpi-icon" aria-hidden="true">👥</div>
+            <div class="label">퀴즈 총 참여자</div>
+          </div>
+          <div class="kpi-value-row">
+            <span class="value" id="kpiTotal">--</span>
+            <span class="trend-badge up" id="kpiTotalBadge">▲ 0 오늘</span>
+          </div>
+          <div class="sub" id="kpiTotalSub">오늘 기준 참여자 수</div>
         </div>
         <div class="kpi">
-          <div class="top-line"></div>
-          <div class="label">DM 발송 완료</div>
-          <div class="value" id="kpiSent">--</div>
-          <div class="sub" id="kpiSentSub" style="color:var(--green-500)">--</div>
+          <div class="kpi-head">
+            <div class="kpi-icon" aria-hidden="true">✓</div>
+            <div class="label">DM 발송 완료</div>
+          </div>
+          <div class="kpi-value-row">
+            <span class="value" id="kpiSent">--</span>
+            <span class="trend-badge up" id="kpiSentBadge">0% 완료율</span>
+          </div>
+          <div class="sub" id="kpiSentSub">퀴즈 완료 대비 발송 완료 비율</div>
         </div>
         <div class="kpi">
-          <div class="top-line"></div>
-          <div class="label">발송 대기 중</div>
-          <div class="value" id="kpiPending">--</div>
-          <div class="sub" id="kpiPendingSub" style="color:var(--orange)">--</div>
+          <div class="kpi-head">
+            <div class="kpi-icon" aria-hidden="true">⏳</div>
+            <div class="label">발송 대기 중</div>
+          </div>
+          <div class="kpi-value-row">
+            <span class="value" id="kpiPending">--</span>
+            <span class="trend-badge neutral" id="kpiPendingBadge">--</span>
+          </div>
+          <div class="sub" id="kpiPendingSub">n8n 워크플로우 처리 대기</div>
         </div>
         <div class="kpi">
-          <div class="top-line"></div>
-          <div class="label">프로모코드 발급</div>
-          <div class="value" id="kpiPromo">--</div>
-          <div class="sub" id="kpiPromoSub" style="color:var(--text3)">--</div>
+          <div class="kpi-head">
+            <div class="kpi-icon" aria-hidden="true">🎟</div>
+            <div class="label">프로모코드 발급</div>
+          </div>
+          <div class="kpi-value-row">
+            <span class="value" id="kpiPromo">--</span>
+          </div>
+          <div class="sub" id="kpiPromoSub">SANTOKKI-XXXX-15OFF 형식</div>
         </div>
       </div>
     </section>
@@ -193,7 +217,7 @@ body{font-family:var(--font-body);font-weight:400;color:var(--text);background:v
     <!-- ═══ Section: Funnel ═══ -->
     <section id="funnel" style="margin-bottom:20px">
       <div class="card">
-        <h3>🔽 퍼널 분석</h3>
+        <h3>퍼널 분석</h3>
         <div class="desc">퀴즈 완료부터 DM 발송까지의 전환 현황 (ManyChat 연동 시 상단 퍼널 추가 예정)</div>
         <div id="funnelChart"></div>
       </div>
@@ -203,12 +227,12 @@ body{font-family:var(--font-body);font-weight:400;color:var(--text);background:v
     <section id="scent">
       <div class="grid-2">
         <div class="card">
-          <h3>🌸 향 프로필 분포</h3>
+          <h3>향 프로필 분포</h3>
           <div class="desc">top_scent 기준 전체 비율</div>
           <canvas id="scentPie"></canvas>
         </div>
         <div class="card">
-          <h3>📊 향 프로필 점수 분포</h3>
+          <h3>향 프로필 점수 분포</h3>
           <div class="desc">평균 점수 비교 (0~37.5점)</div>
           <canvas id="scentBar"></canvas>
         </div>
@@ -219,12 +243,12 @@ body{font-family:var(--font-body);font-weight:400;color:var(--text);background:v
     <section id="products" style="margin-bottom:20px">
       <div class="grid-2">
         <div class="card">
-          <h3>🛍️ 제품별 매칭 랭킹</h3>
+          <h3>제품별 매칭 랭킹</h3>
           <div class="desc">추천 횟수 기준 상위 제품</div>
           <canvas id="productBar"></canvas>
         </div>
         <div class="card">
-          <h3>📦 카테고리별 비중</h3>
+          <h3>카테고리별 비중</h3>
           <div class="desc">제품 유형별 매칭 비율</div>
           <canvas id="categoryDoughnut"></canvas>
         </div>
@@ -235,17 +259,17 @@ body{font-family:var(--font-body);font-weight:400;color:var(--text);background:v
     <section id="demographics">
       <div class="grid-3">
         <div class="card">
-          <h3>👥 성별 분포</h3>
+          <h3>성별 분포</h3>
           <div class="desc">basic_info.gender 기준</div>
           <canvas id="genderPie"></canvas>
         </div>
         <div class="card">
-          <h3>🎂 연령대 분포</h3>
+          <h3>연령대 분포</h3>
           <div class="desc">basic_info.age_group 기준</div>
           <canvas id="agePie"></canvas>
         </div>
         <div class="card">
-          <h3>🌸 성별 × 향 프로필</h3>
+          <h3>성별 × 향 프로필</h3>
           <div class="desc">세그먼트별 취향 차이</div>
           <canvas id="genderScentBar"></canvas>
         </div>
@@ -256,12 +280,12 @@ body{font-family:var(--font-body);font-weight:400;color:var(--text);background:v
     <section id="space">
       <div class="grid-2">
         <div class="card">
-          <h3>🏠 공간 선호도</h3>
+          <h3>공간 선호도</h3>
           <div class="desc">selected_space 기준 비율</div>
           <canvas id="spacePie"></canvas>
         </div>
         <div class="card">
-          <h3>🏠 공간별 인기 향</h3>
+          <h3>공간별 인기 향</h3>
           <div class="desc">공간 × 향 프로필 크로스 분석</div>
           <canvas id="spaceBar"></canvas>
         </div>
@@ -271,7 +295,7 @@ body{font-family:var(--font-body);font-weight:400;color:var(--text);background:v
     <!-- ═══ Section: Timeline ═══ -->
     <section id="timeline" style="margin-bottom:20px">
       <div class="card">
-        <h3>📈 일별 참여 추이</h3>
+        <h3>일별 참여 추이</h3>
         <div class="desc">created_at 기준 일별 퀴즈 완료 수</div>
         <canvas id="timelineChart" style="max-height:320px"></canvas>
       </div>
@@ -280,7 +304,7 @@ body{font-family:var(--font-body);font-weight:400;color:var(--text);background:v
     <!-- ═══ Section: Live Feed ═══ -->
     <section id="feed">
       <div class="card">
-        <h3>⚡ 실시간 참여 피드</h3>
+        <h3>실시간 참여 피드</h3>
         <div class="desc">최근 퀴즈 완료 기록 (최대 50건)</div>
         <div style="overflow-x:auto;margin-top:12px">
           <table class="data-table" id="feedTable">
@@ -300,9 +324,10 @@ body{font-family:var(--font-body);font-weight:400;color:var(--text);background:v
 
 <script>
 // ═══ Chart.js Global Defaults (Santokki Style) ═══
-Chart.defaults.font.family = "'Outfit', sans-serif";
+Chart.defaults.font.family = "'Outfit', 'Noto Sans KR', sans-serif";
 Chart.defaults.font.size = 12;
-Chart.defaults.color = '#78716c';
+Chart.defaults.font.weight = '500';
+Chart.defaults.color = '#57534e';
 
 // ──────────────────────────────────────────────────────────
 // Firebase Init
@@ -323,7 +348,7 @@ const db = firebase.firestore();
 // Scent Configuration
 // ──────────────────────────────────────────────────────────
 const SCENT_LABELS = ['FLORAL', 'GREEN', 'FRESH', 'WOODY_INK', 'WARMING'];
-const SCENT_DISPLAY = ['🌸 Floral', '🌲 Green', '🌊 Fresh', '🖤 Woody/Ink', '🔥 Warming'];
+const SCENT_DISPLAY = ['Floral', 'Green', 'Fresh', 'Woody/Ink', 'Warming'];
 const SCENT_COLORS = ['#d4a0b9', '#4d9b73', '#6ba3be', '#8b7bb5', '#c8875f'];
 const SCENT_BG = ['#d4a0b933', '#4d9b7333', '#6ba3be33', '#8b7bb533', '#c8875f33'];
 
@@ -334,15 +359,18 @@ let allDocs = [];
 let filteredDocs = [];
 let currentFilter = '30d';
 let charts = {};
+let manychatFunnelStats = { commentKeywordCount: null, quizLinkDmCount: null };
 
 // ──────────────────────────────────────────────────────────
 // Data Loading
 // ──────────────────────────────────────────────────────────
 async function loadData() {
   try {
-    const snapshot = await db.collection('quiz_results')
-      .orderBy('created_at', 'desc')
-      .get();
+    const [snapshot, funnelRes] = await Promise.all([
+      db.collection('quiz_results').orderBy('created_at', 'desc').get(),
+      fetch('/api/funnel-stats').then(r => r.json()).catch(() => ({ commentKeywordCount: 0, quizLinkDmCount: 0 }))
+    ]);
+    manychatFunnelStats = funnelRes;
 
     allDocs = snapshot.docs.map(doc => {
       const d = doc.data();
@@ -424,19 +452,21 @@ function renderKPI() {
   document.getElementById('kpiPending').textContent = pending.toLocaleString();
   document.getElementById('kpiPromo').textContent = promo.toLocaleString();
 
-  // Today counts for sub
   const today = new Date();
   const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
   const todayDocs = allDocs.filter(d => d.created_at && new Date(d.created_at) >= todayStart);
 
-  document.getElementById('kpiTotalSub').innerHTML = todayDocs.length > 0
-    ? `▲ ${todayDocs.length} 오늘`
-    : '오늘 0건';
-  document.getElementById('kpiSentSub').innerHTML = `${rate}% 완료율`;
-  document.getElementById('kpiPendingSub').innerHTML = pending > 0
-    ? `⏳ ${pending}건 처리 중`
-    : `✅ 모두 발송`;
-  document.getElementById('kpiPromoSub').innerHTML = `SANTOKKI-XXXX-15OFF`;
+  const totalBadge = document.getElementById('kpiTotalBadge');
+  totalBadge.textContent = todayDocs.length > 0 ? `▲ ${todayDocs.length} 오늘` : '오늘 0건';
+  totalBadge.className = 'trend-badge ' + (todayDocs.length > 0 ? 'up' : 'neutral');
+
+  const sentBadge = document.getElementById('kpiSentBadge');
+  sentBadge.textContent = rate + '% 완료율';
+  sentBadge.className = 'trend-badge ' + (parseFloat(rate) >= 100 ? 'up' : 'warn');
+
+  const pendingBadge = document.getElementById('kpiPendingBadge');
+  pendingBadge.textContent = pending > 0 ? pending + '건 대기' : '모두 발송';
+  pendingBadge.className = 'trend-badge ' + (pending > 0 ? 'warn' : 'up');
 
   // Alert
   const alertEl = document.getElementById('alertBanner');
@@ -455,11 +485,20 @@ function renderFunnel() {
   const total = filteredDocs.length;
   const sent = filteredDocs.filter(d => d.dm_sent === true).length;
   const pct = total > 0 ? Math.round(sent / total * 100) : 0;
+  const c1 = manychatFunnelStats.commentKeywordCount;
+  const c2 = manychatFunnelStats.quizLinkDmCount;
+  const hasManyChat = (c1 != null && c1 > 0) || (c2 != null && c2 > 0);
+  const step1 = hasManyChat && c1 != null
+    ? `<div class="funnel-step"><div class="funnel-label">댓글 키워드 작성</div><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:100%;background:var(--green-500)">${Number(c1).toLocaleString()}명</div></div><div class="funnel-pct" style="color:var(--green-600)">100%</div></div>`
+    : `<div class="funnel-step" style="opacity:.45"><div class="funnel-label">댓글 키워드 작성</div><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:100%;background:var(--gray-200);color:var(--text3);font-style:italic">(ManyChat 연동 후)</div></div><div class="funnel-pct" style="color:var(--text3)">—</div></div>`;
+  const step2 = hasManyChat && c2 != null
+    ? `<div class="funnel-step"><div class="funnel-label">퀴즈 링크 DM 수신</div><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:100%;background:var(--green-400)">${Number(c2).toLocaleString()}명</div></div><div class="funnel-pct" style="color:var(--green-600)">100%</div></div>`
+    : `<div class="funnel-step" style="opacity:.45"><div class="funnel-label">퀴즈 링크 DM 수신</div><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:100%;background:var(--gray-200);color:var(--text3);font-style:italic">(ManyChat 연동 후)</div></div><div class="funnel-pct" style="color:var(--text3)">—</div></div>`;
 
   document.getElementById('funnelChart').innerHTML = `
-    <div class="funnel-step" style="opacity:.45"><div class="funnel-label">댓글 키워드 작성</div><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:100%;background:var(--gray-200);color:var(--text3);font-style:italic">(ManyChat 연동 후)</div></div><div class="funnel-pct" style="color:var(--text3)">—</div></div>
+    ${step1}
     <div class="funnel-drop">↓</div>
-    <div class="funnel-step" style="opacity:.45"><div class="funnel-label">퀴즈 링크 DM 수신</div><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:100%;background:var(--gray-200);color:var(--text3);font-style:italic">(ManyChat 연동 후)</div></div><div class="funnel-pct" style="color:var(--text3)">—</div></div>
+    ${step2}
     <div class="funnel-drop">↓</div>
     <div class="funnel-step"><div class="funnel-label">퀴즈 완료</div><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:100%;background:var(--green-500)">${total.toLocaleString()}명</div></div><div class="funnel-pct" style="color:var(--green-600)">100%</div></div>
     <div class="funnel-drop">↓ ${100-pct}% 이탈</div>
@@ -501,15 +540,17 @@ function renderScentCharts() {
       datasets: [{
         data: SCENT_LABELS.map(s => scentCounts[s]),
         backgroundColor: SCENT_COLORS,
-        borderColor: '#fff',
-        borderWidth: 2
+        borderColor: 'transparent',
+        borderWidth: 0,
+        hoverBorderWidth: 2,
+        hoverBorderColor: '#fff'
       }]
     },
     options: {
       responsive: true,
-      cutout: '55%',
+      cutout: '62%',
       plugins: {
-        legend: { position: 'bottom', labels: { padding: 14, font: { size: 11 } } }
+        legend: { position: 'bottom', labels: { padding: 16, font: { size: 12, weight: '600' } } }
       }
     }
   });
@@ -609,15 +650,17 @@ function renderProductCharts() {
       datasets: [{
         data: catKeys.map(k => catCounts[k] || 0),
         backgroundColor: SCENT_COLORS.slice(0, 4),
-        borderColor: '#fff',
-        borderWidth: 2
+        borderColor: 'transparent',
+        borderWidth: 0,
+        hoverBorderWidth: 2,
+        hoverBorderColor: '#fff'
       }]
     },
     options: {
       responsive: true,
-      cutout: '55%',
+      cutout: '62%',
       plugins: {
-        legend: { position: 'bottom', labels: { padding: 14, font: { size: 11 } } }
+        legend: { position: 'bottom', labels: { padding: 16, font: { size: 12, weight: '600' } } }
       }
     }
   });
@@ -644,14 +687,16 @@ function renderDemographics() {
       datasets: [{
         data: genderKeys.map(k => genderCounts[k]),
         backgroundColor: ['#d4a0b9', '#6ba3be', '#8b7bb5', '#a8a29e'],
-        borderColor: '#fff',
-        borderWidth: 2
+        borderColor: 'transparent',
+        borderWidth: 0,
+        hoverBorderWidth: 2,
+        hoverBorderColor: '#fff'
       }]
     },
     options: {
       responsive: true,
-      cutout: '55%',
-      plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } }
+      cutout: '62%',
+      plugins: { legend: { position: 'bottom', labels: { font: { size: 12, weight: '600' }, padding: 16 } } }
     }
   });
 
@@ -746,14 +791,16 @@ function renderSpace() {
       datasets: [{
         data: spaceKeys.map(k => spaceCounts[k] || 0),
         backgroundColor: ['#4d9b73', '#c8875f', '#6ba3be'],
-        borderColor: '#fff',
-        borderWidth: 2
+        borderColor: 'transparent',
+        borderWidth: 0,
+        hoverBorderWidth: 2,
+        hoverBorderColor: '#fff'
       }]
     },
     options: {
       responsive: true,
-      cutout: '55%',
-      plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } }
+      cutout: '62%',
+      plugins: { legend: { position: 'bottom', labels: { font: { size: 12, weight: '600' }, padding: 16 } } }
     }
   });
 
@@ -849,8 +896,6 @@ function renderFeed() {
 
   const spaceLabel = { 'living_bedroom': '거실/침실', 'kitchen': '주방', 'car': '차량' };
   const genderLabel = { 'female': 'F', 'male': 'M', 'non_binary': 'NB', 'prefer_not_to_say': '-' };
-  const scentEmoji = { 'FLORAL': '🌸', 'GREEN': '🌲', 'FRESH': '🌊', 'WOODY_INK': '🖤', 'WARMING': '🔥' };
-
   body.innerHTML = recent.map(d => {
     const time = d.created_at ? new Date(d.created_at).toLocaleString('ko-KR', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '--';
     const subId = d.subscriber_id ? (d.subscriber_id.slice(0, 8) + '...') : '--';
@@ -858,18 +903,17 @@ function renderFeed() {
     const age = d.basic_info?.age_group || '--';
     const space = spaceLabel[d.selected_space] || '--';
     const scent = d.result?.top_scent || '--';
-    const scentIcon = scentEmoji[scent] || '';
     const product = d.result?.matched_product_name_en || d.result?.matched_product_name || '--';
     const dmStatus = d.dm_sent
-      ? '<span class="status-badge sent">✅ 발송</span>'
-      : '<span class="status-badge pending">⏳ 대기</span>';
+      ? '<span class="status-badge sent">발송</span>'
+      : '<span class="status-badge pending">대기</span>';
     return `<tr>
       <td style="color:var(--text2);white-space:nowrap">${time}</td>
       <td><code style="font-size:.7rem;color:var(--accent)">${subId}</code></td>
       <td>${gender}</td>
       <td>${age}</td>
       <td>${space}</td>
-      <td>${scentIcon} ${scent}</td>
+      <td>${scent}</td>
       <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${product}</td>
       <td>${dmStatus}</td>
     </tr>`;

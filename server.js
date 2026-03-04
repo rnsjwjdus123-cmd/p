@@ -2,12 +2,14 @@
  * Santokki — 대시보드 결과 → 최적 상품 → 15초 광고·게시글 프롬프트 생성 API
  * .env: OPENAI_API_KEY, LINKTREE_URL(선택)
  * Firebase: santokki/firebase-key.json (시향 테스트 10명 이상일 때 자동 통계)
+ * Google Sheets: GOOGLE_SERVICE_ACCOUNT_JSON, GOOGLE_SHEET_ID (일일 프롬프트 자동 저장)
  */
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const OpenAI = require('openai');
+const cron = require('node-cron');
 
 let firebaseAdmin = null;
 // 배포 시: FIREBASE_SERVICE_ACCOUNT_JSON 환경 변수에 서비스 계정 JSON 문자열 넣기 (키 파일 대신)
@@ -47,44 +49,71 @@ app.use(express.static(__dirname));
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const linktreeUrl = process.env.LINKTREE_URL || 'https://linktr.ee/santokki';
 
-/** GET /api/stats-from-firebase — 시향 테스트 10명 이상일 때만 Firestore 통계 반환 */
+/** Firebase에서 기간별 통계 수집 (period: 1d = 최근 24h, 7d, 30d, all) */
+async function getFirebaseStats(period = '30d') {
+  if (!firebaseAdmin) return { ok: false, count: 0, stats: null };
+  const db = firebaseAdmin.firestore();
+  const snap = await db.collection('quiz_results').orderBy('created_at', 'desc').get();
+  let docs = snap.docs;
+  if (period === '1d') {
+    const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    docs = docs.filter(d => {
+      const t = d.data().created_at;
+      if (!t) return false;
+      const date = t.toDate ? t.toDate() : new Date(t);
+      return date >= since;
+    });
+  } else if (period === '7d') {
+    const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    docs = docs.filter(d => {
+      const t = d.data().created_at;
+      if (!t) return false;
+      const date = t.toDate ? t.toDate() : new Date(t);
+      return date >= since;
+    });
+  }
+  const count = docs.length;
+  if (count < 10) return { ok: false, count, stats: null };
+  const scentCount = {};
+  const productCount = {};
+  const genderCount = {};
+  const spaceCount = {};
+  docs.forEach(doc => {
+    const d = doc.data();
+    const scent = d.result?.top_scent;
+    const product = d.result?.matched_product_name_en || d.result?.matched_product_name;
+    const gender = d.basic_info?.gender;
+    const space = d.selected_space;
+    if (scent) scentCount[scent] = (scentCount[scent] || 0) + 1;
+    if (product) productCount[product] = (productCount[product] || 0) + 1;
+    if (gender) genderCount[gender] = (genderCount[gender] || 0) + 1;
+    if (space) spaceCount[space] = (spaceCount[space] || 0) + 1;
+  });
+  const topScents = Object.entries(scentCount).sort((a, b) => b[1] - a[1]).map(([k]) => k);
+  const topProducts = Object.entries(productCount).sort((a, b) => b[1] - a[1]).map(([k]) => k);
+  const stats = {
+    topScents,
+    topProducts,
+    totalResponses: count,
+    period,
+    genderRatio: genderCount,
+    spaceRatio: spaceCount
+  };
+  return { ok: true, count, stats };
+}
+
+/** GET /api/stats-from-firebase — 시향 테스트 10명 이상일 때만 Firestore 통계 반환. ?period=1d|7d|30d|all */
 app.get('/api/stats-from-firebase', async (req, res) => {
   if (!firebaseAdmin) {
     return res.status(503).json({ ok: false, message: 'Firebase 연동 없음. santokki/firebase-key.json 확인.', count: 0 });
   }
+  const period = req.query.period || '30d';
   try {
-    const db = firebaseAdmin.firestore();
-    const snap = await db.collection('quiz_results').orderBy('created_at', 'desc').get();
-    const count = snap.size;
-    if (count < 10) {
-      return res.json({ ok: false, count, message: '시향 테스트 응답이 10명 이상일 때만 자동 생성할 수 있습니다.', stats: null });
+    const out = await getFirebaseStats(period);
+    if (!out.ok) {
+      return res.json({ ok: false, count: out.count, message: '시향 테스트 응답이 10명 이상일 때만 자동 생성할 수 있습니다.', stats: null });
     }
-    const scentCount = {};
-    const productCount = {};
-    const genderCount = {};
-    const spaceCount = {};
-    snap.docs.forEach(doc => {
-      const d = doc.data();
-      const scent = d.result?.top_scent;
-      const product = d.result?.matched_product_name_en || d.result?.matched_product_name;
-      const gender = d.basic_info?.gender;
-      const space = d.selected_space;
-      if (scent) scentCount[scent] = (scentCount[scent] || 0) + 1;
-      if (product) productCount[product] = (productCount[product] || 0) + 1;
-      if (gender) genderCount[gender] = (genderCount[gender] || 0) + 1;
-      if (space) spaceCount[space] = (spaceCount[space] || 0) + 1;
-    });
-    const topScents = Object.entries(scentCount).sort((a, b) => b[1] - a[1]).map(([k]) => k);
-    const topProducts = Object.entries(productCount).sort((a, b) => b[1] - a[1]).map(([k]) => k);
-    const stats = {
-      topScents,
-      topProducts,
-      totalResponses: count,
-      period: '30d',
-      genderRatio: genderCount,
-      spaceRatio: spaceCount
-    };
-    return res.json({ ok: true, count, stats });
+    return res.json({ ok: true, count: out.count, stats: out.stats });
   } catch (err) {
     console.error('Firebase stats error:', err.message);
     return res.status(500).json({ ok: false, message: err.message, count: 0 });
@@ -263,6 +292,79 @@ Return JSON: { "instagramCaption": "string", "naverBlogPost": { "title": "...", 
   }
 });
 
+/** GET /api/sheet-url — 일일 프롬프트 저장 구글 시트 주소 + 게시글관리 탭 바로가기 */
+app.get('/api/sheet-url', async (req, res) => {
+  let raw = process.env.GOOGLE_SHEET_ID;
+  if (!raw || !(raw = raw.trim())) {
+    return res.json({ configured: false });
+  }
+  let id = raw;
+  const m = raw.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
+  if (m) id = m[1];
+  const baseUrl = raw.startsWith('http') ? raw.replace(/#.*$/, '') : `https://docs.google.com/spreadsheets/d/${id}/edit`;
+  const url = baseUrl.includes('/edit') ? baseUrl : (baseUrl + '/edit');
+  let gamePostManagementUrl = url;
+  try {
+    const sheets = getGoogleSheetsClient();
+    if (sheets && id) {
+      const info = await getFirstSheetInfo(sheets, id);
+      if (info) gamePostManagementUrl = url.replace(/#.*$/, '') + '#gid=' + info.sheetId;
+    }
+  } catch (_) {}
+  return res.json({ configured: true, url, gamePostManagementUrl });
+});
+
+/** GET /api/funnel-stats — ManyChat 퍼널 상단 2단계 숫자 (댓글 키워드, 퀴즈 링크 DM) */
+app.get('/api/funnel-stats', async (req, res) => {
+  try {
+    if (!firebaseAdmin) {
+      return res.json({ commentKeywordCount: 0, quizLinkDmCount: 0 });
+    }
+    const db = firebaseAdmin.firestore();
+    const ref = db.collection('stats').doc('manychat_funnel');
+    const snap = await ref.get();
+    const d = snap.exists ? snap.data() : {};
+    return res.json({
+      commentKeywordCount: d.comment_keyword_count ?? 0,
+      quizLinkDmCount: d.quiz_link_sent_count ?? 0
+    });
+  } catch (err) {
+    console.warn('funnel-stats error:', err.message);
+    return res.json({ commentKeywordCount: 0, quizLinkDmCount: 0 });
+  }
+});
+
+/** POST /api/manychat/webhook — ManyChat 웹훅 수신 시 퍼널 카운트 증가 */
+app.post('/api/manychat/webhook', async (req, res) => {
+  try {
+    const body = req.body || {};
+    const event = body.event || body.type;
+    if (!firebaseAdmin) {
+      return res.status(200).send('OK');
+    }
+    const db = firebaseAdmin.firestore();
+    const ref = db.collection('stats').doc('manychat_funnel');
+    const snap = await ref.get();
+    const current = snap.exists ? snap.data() : { comment_keyword_count: 0, quiz_link_sent_count: 0 };
+    let updated = false;
+    if (event === 'subscriber_added') {
+      current.comment_keyword_count = (current.comment_keyword_count || 0) + 1;
+      updated = true;
+    } else if (event === 'message_sent' || event === 'flow_trigger') {
+      current.quiz_link_sent_count = (current.quiz_link_sent_count || 0) + 1;
+      updated = true;
+    }
+    if (updated) {
+      current.updated_at = firebaseAdmin.firestore.FieldValue.serverTimestamp();
+      await ref.set(current, { merge: true });
+    }
+    return res.status(200).send('OK');
+  } catch (err) {
+    console.error('ManyChat webhook error:', err.message);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 /**
  * GET /api/schema — 대시보드 통계 스키마 (n8n/동료 연동용)
  */
@@ -280,6 +382,419 @@ app.get('/api/schema', (req, res) => {
     bodyExample: { stats: { topScents: ['GREEN'], topProducts: ['Morning Mist of Namsan'], totalResponses: 42, period: '7d' } }
   });
 });
+
+// ─── Google Sheets (일일 프롬프트 자동 저장) ─────────────────────────────
+let googleSheetsClient = null;
+function getGoogleSheetsClient() {
+  if (googleSheetsClient) return googleSheetsClient;
+  const json = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
+  const keyPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+  let key = null;
+  if (json) {
+    try {
+      key = typeof json === 'string' ? JSON.parse(json) : json;
+    } catch (e) {
+      console.warn('GOOGLE_SERVICE_ACCOUNT_JSON parse error:', e.message);
+      return null;
+    }
+  } else if (keyPath && fs.existsSync(path.resolve(keyPath))) {
+    key = require(path.resolve(keyPath));
+  }
+  if (!key) return null;
+  const { google } = require('googleapis');
+  const auth = new google.auth.GoogleAuth({
+    credentials: key,
+    scopes: ['https://www.googleapis.com/auth/spreadsheets']
+  });
+  googleSheetsClient = google.sheets({ version: 'v4', auth });
+  return googleSheetsClient;
+}
+
+/** .env의 GOOGLE_SHEET_ID(전체 링크, ID만, 또는 ID/edit?gid=0 등)에서 스프레드시트 ID 추출 */
+function getSheetId() {
+  const raw = process.env.GOOGLE_SHEET_ID;
+  if (!raw || !raw.trim()) return null;
+  const m = raw.trim().match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
+  if (m) return m[1];
+  const idOnly = raw.trim().match(/^([a-zA-Z0-9_-]{40,})/);
+  return idOnly ? idOnly[1] : raw.trim();
+}
+
+/** 생성 결과 한 행을 시트에 추가 */
+async function appendPromptRowToSheet(payload) {
+  const sheetId = getSheetId();
+  const tabName = process.env.GOOGLE_SHEET_TAB_NAME || '일일프롬프트';
+  if (!sheetId) {
+    console.warn('GOOGLE_SHEET_ID not set, skip append');
+    return { ok: false, message: 'GOOGLE_SHEET_ID not set' };
+  }
+  const sheets = getGoogleSheetsClient();
+  if (!sheets) {
+    console.warn('Google Sheets auth not configured');
+    return { ok: false, message: 'Google Sheets auth not configured' };
+  }
+  const {
+    date,
+    topScents,
+    topProducts,
+    totalResponses,
+    optimalProduct,
+    adScript15s,
+    feedPostCopy,
+    seoTitle,
+    seoBody,
+    seoHashtags
+  } = payload;
+  const optName = optimalProduct && (Array.isArray(optimalProduct) ? optimalProduct[0] : optimalProduct);
+  const nameStr = optName && typeof optName === 'object' ? (optName.nameKo || optName.name || JSON.stringify(optName)) : (optimalProduct ? JSON.stringify(optimalProduct) : '');
+  const row = [
+    date || new Date().toISOString().slice(0, 10),
+    (topScents || []).join(', '),
+    (topProducts || []).join(', '),
+    totalResponses ?? '',
+    nameStr,
+    (adScript15s || '').slice(0, 50000),
+    (feedPostCopy || '').slice(0, 50000),
+    seoTitle || '',
+    (seoBody || '').slice(0, 50000),
+    seoHashtags || ''
+  ];
+  try {
+    await sheets.spreadsheets.values.append({
+      spreadsheetId: sheetId,
+      range: `'${tabName}'!A:J`,
+      valueInputOption: 'USER_ENTERED',
+      insertDataOption: 'INSERT_ROWS',
+      requestBody: { values: [row] }
+    });
+    await organizeSheetAfterAppend(sheets, sheetId, tabName);
+    return { ok: true };
+  } catch (err) {
+    console.error('Google Sheets append error:', err.message);
+    return { ok: false, message: err.message };
+  }
+}
+
+/** 시트 탭 이름으로 시트 gid(숫자) 조회 */
+async function getSheetIdByTitle(sheets, spreadsheetId, tabName) {
+  const res = await sheets.spreadsheets.get({ spreadsheetId });
+  const sheet = (res.data.sheets || []).find(s => (s.properties.title || '') === tabName);
+  return sheet ? sheet.properties.sheetId : (res.data.sheets && res.data.sheets[0] ? res.data.sheets[0].properties.sheetId : 0);
+}
+
+/** append 후 시트 정리: 1행 고정, 날짜(최신순) 정렬, 열 너비 */
+async function organizeSheetAfterAppend(sheets, spreadsheetId, tabName) {
+  if (!sheets || !spreadsheetId) return;
+  try {
+    const gid = await getSheetIdByTitle(sheets, spreadsheetId, tabName);
+    const dataRes = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: `'${tabName}'!A:J`
+    });
+    const rowCount = (dataRes.data.values || []).length;
+    if (rowCount <= 1) {
+      await sheets.spreadsheets.batchUpdate({
+        spreadsheetId,
+        requestBody: {
+          requests: [
+            { updateSheetProperties: { properties: { sheetId: gid, gridProperties: { frozenRowCount: 1 } }, fields: 'gridProperties.frozenRowCount' } },
+            { updateDimensionProperties: { range: { sheetId: gid, dimension: 'COLUMNS', startIndex: 0, endIndex: 10 }, properties: { pixelSize: 120 }, fields: 'pixelSize' } }
+          ]
+        }
+      });
+      return;
+    }
+    const requests = [
+      { updateSheetProperties: { properties: { sheetId: gid, gridProperties: { frozenRowCount: 1 } }, fields: 'gridProperties.frozenRowCount' } },
+      { sortRange: { range: { sheetId: gid, startRowIndex: 1, startColumnIndex: 0, endRowIndex: rowCount, endColumnIndex: 10 }, sortSpecs: [{ dimensionIndex: 0, sortOrder: 'DESCENDING' }] } }
+    ];
+    for (let c = 0; c < 10; c++) {
+      const w = c === 0 ? 100 : c <= 4 ? 120 : 220;
+      requests.push({ updateDimensionProperties: { range: { sheetId: gid, dimension: 'COLUMNS', startIndex: c, endIndex: c + 1 }, properties: { pixelSize: w }, fields: 'pixelSize' } });
+    }
+    await sheets.spreadsheets.batchUpdate({ spreadsheetId, requestBody: { requests } });
+  } catch (err) {
+    console.warn('Sheet organize skip:', err.message);
+  }
+}
+
+/** 시트에 헤더 행이 없으면 한 번 추가 */
+async function ensureSheetHeaders() {
+  const sheetId = getSheetId();
+  const tabName = process.env.GOOGLE_SHEET_TAB_NAME || '일일프롬프트';
+  const sheets = getGoogleSheetsClient();
+  if (!sheets || !sheetId) return;
+  try {
+    const res = await sheets.spreadsheets.values.get({
+      spreadsheetId: sheetId,
+      range: `'${tabName}'!A1:J1`
+    });
+    const rows = res.data.values || [];
+    if (rows.length === 0) {
+      await sheets.spreadsheets.values.update({
+        spreadsheetId: sheetId,
+        range: `'${tabName}'!A1:J1`,
+        valueInputOption: 'USER_ENTERED',
+        requestBody: {
+          values: [[
+            '날짜', '인기 향', '인기 매칭 제품', '총 응답 수', '최적 상품', '15초 광고 스크립트', '게시글 카피', 'SEO 제목', 'SEO 본문', '해시태그'
+          ]]
+        }
+      });
+    }
+  } catch (_) {}
+}
+
+/** 스프레드시트의 첫 번째 시트 정보 (제목·gid) — 게시글/프롬프트 저장용 */
+function getFirstSheetInfo(sheets, spreadsheetId) {
+  return sheets.spreadsheets.get({ spreadsheetId }).then(res => {
+    const list = res.data.sheets || [];
+    const first = list[0];
+    if (!first || !first.properties) return null;
+    return { title: first.properties.title || '시트1', sheetId: first.properties.sheetId };
+  });
+}
+
+/** 첫 번째 시트에 헤더만 확인 후 없으면 넣기 (별도 탭 생성 없음) */
+async function ensurePromptHistorySheet(sheets, spreadsheetId) {
+  const info = await getFirstSheetInfo(sheets, spreadsheetId);
+  if (!info) return;
+  const titleEsc = String(info.title).replace(/'/g, "''");
+  const range = `'${titleEsc}'!A1:I1`;
+  const headerRes = await sheets.spreadsheets.values.get({ spreadsheetId, range });
+  const rows = headerRes.data.values || [];
+  if (rows.length === 0) {
+    await sheets.spreadsheets.values.update({
+      spreadsheetId,
+      range,
+      valueInputOption: 'USER_ENTERED',
+      requestBody: {
+        values: [[
+          '날짜', '상품명', '인스타용', '트위터(X)용', '게시글용', '15초 광고', 'SEO 제목', 'SEO 본문', '해시태그'
+        ]]
+      }
+    });
+  }
+}
+
+/** 프롬프트 생성 결과를 Santokki 스프레드시트 첫 번째 시트에 한 행 추가 */
+async function appendPromptHistoryRow(payload) {
+  const spreadsheetId = getSheetId();
+  const sheets = getGoogleSheetsClient();
+  if (!spreadsheetId) return { ok: false, message: '.env에 GOOGLE_SHEET_ID를 넣어 주세요 (스프레드시트 URL 또는 ID)' };
+  if (!sheets) return { ok: false, message: 'Google 시트 인증이 없습니다. .env에 GOOGLE_APPLICATION_CREDENTIALS(파일 경로) 또는 GOOGLE_SERVICE_ACCOUNT_JSON을 설정하고, 해당 스프레드시트를 서비스 계정 이메일에 공유해 주세요.' };
+  const {
+    date,
+    productName,
+    instagram,
+    twitter,
+    feedCopy,
+    adScript15s,
+    seoTitle,
+    seoBody,
+    hashtags
+  } = payload;
+  try {
+    await ensurePromptHistorySheet(sheets, spreadsheetId);
+    const info = await getFirstSheetInfo(sheets, spreadsheetId);
+    if (!info) return { ok: false, message: 'First sheet not found' };
+    const titleEsc = String(info.title).replace(/'/g, "''");
+    const row = [
+      date || new Date().toISOString().slice(0, 10),
+      (productName || '').slice(0, 500),
+      (instagram || '').slice(0, 50000),
+      (twitter || '').slice(0, 50000),
+      (feedCopy || '').slice(0, 50000),
+      (adScript15s || '').slice(0, 50000),
+      (seoTitle || '').slice(0, 5000),
+      (seoBody || '').slice(0, 50000),
+      (hashtags || '').slice(0, 2000)
+    ];
+    const range = `'${titleEsc}'!A:I`;
+    await sheets.spreadsheets.values.append({
+      spreadsheetId,
+      range,
+      valueInputOption: 'USER_ENTERED',
+      insertDataOption: 'INSERT_ROWS',
+      requestBody: { values: [row] }
+    });
+    await organizePromptHistorySheet(sheets, spreadsheetId);
+    return { ok: true };
+  } catch (err) {
+    console.error('Prompt history append error:', err.message);
+    return { ok: false, message: err.message };
+  }
+}
+
+async function organizePromptHistorySheet(sheets, spreadsheetId) {
+  try {
+    const info = await getFirstSheetInfo(sheets, spreadsheetId);
+    if (!info) return;
+    const gid = info.sheetId;
+    const titleEsc = String(info.title).replace(/'/g, "''");
+    const dataRes = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: `'${titleEsc}'!A:I`
+    });
+    const rowCount = (dataRes.data.values || []).length;
+    if (rowCount <= 1) {
+      await sheets.spreadsheets.batchUpdate({
+        spreadsheetId,
+        requestBody: {
+          requests: [
+            { updateSheetProperties: { properties: { sheetId: gid, gridProperties: { frozenRowCount: 1 } }, fields: 'gridProperties.frozenRowCount' } }
+          ]
+        }
+      });
+      return;
+    }
+    const requests = [
+      { updateSheetProperties: { properties: { sheetId: gid, gridProperties: { frozenRowCount: 1 } }, fields: 'gridProperties.frozenRowCount' } },
+      { sortRange: { range: { sheetId: gid, startRowIndex: 1, startColumnIndex: 0, endRowIndex: rowCount, endColumnIndex: 9 }, sortSpecs: [{ dimensionIndex: 0, sortOrder: 'DESCENDING' }] } }
+    ];
+    const widths = [100, 140, 220, 220, 220, 220, 180, 220, 120];
+    for (let c = 0; c < 9; c++) {
+      requests.push({ updateDimensionProperties: { range: { sheetId: gid, dimension: 'COLUMNS', startIndex: c, endIndex: c + 1 }, properties: { pixelSize: widths[c] }, fields: 'pixelSize' } });
+    }
+    await sheets.spreadsheets.batchUpdate({ spreadsheetId, requestBody: { requests } });
+  } catch (err) {
+    console.warn('Prompt history organize skip:', err.message);
+  }
+}
+
+/** 일일 자동 실행: Firebase(최근 24h) → 프롬프트 생성 → 구글 시트 추가 */
+async function runDailyPromptsToSheets() {
+  console.log('[Daily] runDailyPromptsToSheets started');
+  if (!firebaseAdmin) {
+    console.warn('[Daily] Firebase not configured');
+    return;
+  }
+  if (!process.env.OPENAI_API_KEY) {
+    console.warn('[Daily] OPENAI_API_KEY not set');
+    return;
+  }
+  const out = await getFirebaseStats('1d');
+  if (!out.ok || !out.stats) {
+    console.log('[Daily] Not enough data (need 10+ in last 24h), count=', out.count);
+    return;
+  }
+  const stats = out.stats;
+  const products = getProducts();
+  const productList = products.map(p =>
+    `- ${p.nameKo} (${p.name}), id: ${p.id}, image: ${p.image || ''}: ${p.categoryLabel}, ${p.description}`
+  ).join('\n');
+  const systemPrompt = `You are a Santokki (Korean fragrance for Europe/UK) marketing copywriter. Target audience: Europeans. Output only valid JSON.`;
+  const userPrompt = `Given these scent quiz dashboard results (last 24h):
+
+**Stats:** Top scents: ${(stats.topScents || []).join(', ')}, Top products: ${(stats.topProducts || []).join(', ')}, Total: ${stats.totalResponses}.
+
+**Our products:**\n${productList}
+
+Return a single JSON: optimalProduct (object or array of 1-2 items with id, name, nameKo, reason), adScript15s (string, 35-45 words), feedPostCopy (string, 2-3 sentences + hashtags), seoPost (object with title, metaDescription, body, suggestedImage, hashtags). No markdown.`;
+
+  try {
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt }
+      ],
+      response_format: { type: 'json_object' },
+      temperature: 0.7
+    });
+    const parsed = JSON.parse(completion.choices[0].message.content || '{}');
+    const seoPost = parsed.seoPost || {};
+    await ensureSheetHeaders();
+    const appendResult = await appendPromptRowToSheet({
+      date: new Date().toISOString().slice(0, 10),
+      topScents: stats.topScents,
+      topProducts: stats.topProducts,
+      totalResponses: stats.totalResponses,
+      optimalProduct: parsed.optimalProduct ?? null,
+      adScript15s: parsed.adScript15s ?? '',
+      feedPostCopy: (parsed.feedPostCopy || '').replace(/\[LINK\]/g, linktreeUrl),
+      seoTitle: seoPost.title ?? '',
+      seoBody: seoPost.body ?? '',
+      seoHashtags: seoPost.hashtags ?? ''
+    });
+    if (appendResult.ok) {
+      console.log('[Daily] Prompts generated and saved to Google Sheet');
+    } else {
+      console.warn('[Daily] Sheet append failed:', appendResult.message);
+    }
+  } catch (err) {
+    console.error('[Daily] Error:', err.message);
+  }
+}
+
+/** POST /api/save-prompt-to-sheet — 프롬프트 생성 결과를 게시글관리 시트에 저장 (날짜·상품명·인스타·트위터·게시글용 등) */
+app.post('/api/save-prompt-to-sheet', async (req, res) => {
+  const body = req.body || {};
+  const opt = body.optimalProduct;
+  const productName = opt && (Array.isArray(opt) ? opt[0] : opt);
+  const nameStr = productName && typeof productName === 'object'
+    ? (productName.nameKo || productName.name || '')
+    : (body.productName || '');
+  const seo = body.seoPost || {};
+  try {
+    const result = await appendPromptHistoryRow({
+      date: body.date || new Date().toISOString().slice(0, 10),
+      productName: nameStr,
+      instagram: body.instagram || body.feedPostCopy || '',
+      twitter: body.twitter || body.feedPostCopy || '',
+      feedCopy: body.feedPostCopy || '',
+      adScript15s: body.adScript15s || '',
+      seoTitle: seo.title || body.seoTitle || '',
+      seoBody: seo.body || body.seoBody || '',
+      hashtags: seo.hashtags || body.hashtags || ''
+    });
+    if (result.ok) {
+      return res.json({ ok: true, message: '게시글관리 시트에 저장됨' });
+    }
+    return res.status(400).json({ ok: false, message: result.message });
+  } catch (err) {
+    return res.status(500).json({ ok: false, message: err.message });
+  }
+});
+
+/** POST /api/organize-prompts-sheet — 시트만 정리 (정렬·헤더 고정·열 너비). 갱신 후 호출용 */
+app.post('/api/organize-prompts-sheet', async (req, res) => {
+  const sheetId = getSheetId();
+  const tabName = process.env.GOOGLE_SHEET_TAB_NAME || '일일프롬프트';
+  const sheets = getGoogleSheetsClient();
+  if (!sheets || !sheetId) {
+    return res.status(400).json({ ok: false, message: 'Google Sheet not configured' });
+  }
+  try {
+    await organizeSheetAfterAppend(sheets, sheetId, tabName);
+    return res.json({ ok: true, message: 'Sheet organized' });
+  } catch (err) {
+    return res.status(500).json({ ok: false, message: err.message });
+  }
+});
+
+/** POST /api/run-daily-prompts — 일일 job 수동 실행 (외부 cron용). ?token=xxx 필요 시 DAILY_CRON_SECRET 설정 */
+app.post('/api/run-daily-prompts', async (req, res) => {
+  const secret = process.env.DAILY_CRON_SECRET;
+  if (secret && req.query.token !== secret) {
+    return res.status(403).json({ ok: false, message: 'Invalid token' });
+  }
+  try {
+    await runDailyPromptsToSheets();
+    return res.json({ ok: true, message: 'Daily job completed' });
+  } catch (err) {
+    console.error('run-daily-prompts error:', err.message);
+    return res.status(500).json({ ok: false, message: err.message });
+  }
+});
+
+// 유럽 시간 기준 새벽/아침에 실행 (예: 7:00 UTC = 8:00 Berlin). cron: 분 시 일 월 요일
+if (process.env.DAILY_CRON_SCHEDULE) {
+  cron.schedule(process.env.DAILY_CRON_SCHEDULE, runDailyPromptsToSheets);
+  console.log('Daily prompts cron:', process.env.DAILY_CRON_SCHEDULE);
+} else {
+  cron.schedule('0 7 * * *', runDailyPromptsToSheets); // 매일 07:00 UTC
+}
 
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);

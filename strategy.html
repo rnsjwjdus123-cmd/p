@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Santokki Brand Success Strategy | Risk · Compliance · Competitors · ROI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+  <style>
+    .strategy-page { max-width: 900px; margin: 0 auto; padding: var(--space-xl) var(--space-lg); }
+    .strategy-hero { margin-bottom: var(--space-xl); }
+    .strategy-hero h1 { font-family: var(--font-display); font-size: 1.6rem; color: var(--gray-800); }
+    .strategy-setup { border-bottom: 1px solid var(--border); padding-bottom: var(--space-xl); margin-bottom: var(--space-xl); }
+    .strategy-setup label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--gray-700); margin-bottom: 6px; }
+    .strategy-setup select, .strategy-setup input { width: 100%; max-width: 320px; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-md); font-family: inherit; }
+    .strategy-setup .row { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 14px; }
+    .strategy-setup .row > div { flex: 1; min-width: 180px; }
+    .btn-run { background: var(--accent); color: #fff; border: none; padding: 12px 24px; border-radius: var(--radius-md); font-weight: 600; cursor: pointer; font-family: inherit; font-size: 0.95rem; }
+    .btn-run:hover { background: var(--accent-hover); }
+    .strategy-tabs { display: flex; gap: 4px; margin-bottom: 20px; flex-wrap: wrap; }
+    .strategy-tab { padding: 10px 18px; border: none; border-bottom: 2px solid transparent; background: transparent; cursor: pointer; font-size: 0.9rem; font-weight: 600; color: var(--gray-500); }
+    .strategy-tab.active { border-bottom-color: var(--accent); color: var(--accent); }
+    .strategy-panel { display: none; padding: var(--space-lg) 0; }
+    .strategy-panel.active { display: block; }
+    .strategy-panel h3 { font-family: var(--font-display); font-size: 1.2rem; font-weight: 600; margin-bottom: 12px; color: var(--gray-800); }
+    .strategy-panel .card { border-bottom: 1px solid var(--border); padding: 12px 0; margin-bottom: 14px; }
+    .strategy-panel .card:last-child { border-bottom: none; margin-bottom: 0; }
+    .strategy-panel .alert { padding: 12px 16px; border-radius: var(--radius-sm); margin-bottom: 12px; border: none; font-weight: 500; }
+    .strategy-panel .alert-info { background: var(--green-50); color: var(--gray-700); }
+    .strategy-panel .alert-warning { background: #fff7ed; color: #9a3412; }
+    .strategy-panel .alert-success { background: #f0fdf4; color: #166534; }
+    .strategy-panel .chart-container { min-height: 320px; margin: 16px 0; }
+    .progress-log .step.ok { color: var(--green-600); }
+    .progress-log .step.err { color: #dc2626; }
+    .strategy-panel .badge { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; background: var(--off-white); color: var(--gray-700); margin-right: 8px; }
+    .strategy-panel .text-muted { color: var(--gray-500); }
+    .bullet-list { margin: 0; padding-left: 1.2rem; }
+    .strategy-panel .card { font-size: 0.95rem; line-height: 1.6; }
+    .strategy-panel .card h3 { font-size: 1.1rem; margin-bottom: 10px; }
+    .strategy-panel .comp-why { color: #b91c1c; font-weight: 500; margin: 6px 0 0; line-height: 1.55; }
+    .strategy-panel .comp-win { color: #166534; font-weight: 500; margin: 6px 0 0; line-height: 1.55; }
+  </style>
+</head>
+<body>
+  <main class="strategy-page">
+    <div class="strategy-hero">
+      <h1>Brand Success Strategy</h1>
+      <p>Evidence-based risk, compliance, competitor positioning, and ROI simulation for the UK market.</p>
+    </div>
+    <div class="strategy-setup">
+      <div class="row">
+        <div>
+          <label>Analysis API URL</label>
+          <input type="text" id="apiUrl" value="http://localhost:8000" placeholder="http://localhost:8000">
+        </div>
+        <div>
+          <label>Product</label>
+          <select id="productSelect"><option value="">Loading…</option></select>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>ROI: Monthly budget (£)</label>
+          <input type="number" id="roiBudget" value="1000" min="100" max="50000" step="100">
+        </div>
+        <div>
+          <label>Influencer tier</label>
+          <select id="roiTier">
+            <option value="나노">Nano</option>
+            <option value="마이크로" selected>Micro</option>
+            <option value="매크로">Macro</option>
+          </select>
+        </div>
+        <div>
+          <label>Campaign months</label>
+          <input type="number" id="roiMonths" value="6" min="3" max="12">
+        </div>
+      </div>
+      <div class="row">
+        <button type="button" class="btn-run" id="btnRun">Run strategy analysis</button>
+      </div>
+      <div id="progressArea" class="progress-log" style="display:none"></div>
+    </div>
+    <div id="resultWrap" class="strategy-results" style="display:none">
+      <div class="strategy-tabs">
+        <button type="button" class="strategy-tab active" data-tab="risk">Risk</button>
+        <button type="button" class="strategy-tab" data-tab="compliance">Compliance</button>
+        <button type="button" class="strategy-tab" data-tab="competitor">Competitors</button>
+        <button type="button" class="strategy-tab" data-tab="roi">ROI</button>
+      </div>
+      <div id="panelRisk" class="strategy-panel active"></div>
+      <div id="panelCompliance" class="strategy-panel"></div>
+      <div id="panelCompetitor" class="strategy-panel"></div>
+      <div id="panelRoi" class="strategy-panel"></div>
+    </div>
+  </main>
+
+  <script>
+(function() {
+  var LAYOUT = { margin: { t: 40, r: 20, b: 40, l: 50 }, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)' };
+  var CONFIG = { responsive: true, displayModeBar: true };
+
+  function esc(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function alertBox(text, type) { return '<div class="alert alert-' + (type || 'info') + '">' + esc(text) + '</div>'; }
+  function bullets(text) {
+    if (!text) return '';
+    var lines = String(text).split(/\n/).map(function(l) { return l.trim(); }).filter(Boolean);
+    if (lines.length <= 1) return '<p>' + esc(text) + '</p>';
+    return '<ul class="bullet-list">' + lines.map(function(l) { return '<li>' + esc(l.replace(/^[\d.)\-•]+\s*/, '')) + '</li>'; }).join('') + '</ul>';
+  }
+
+  var SANTOKKI_BENCHMARK = {
+    santokki: { name: 'Santokki', price_range: '£32.90~£69.90', x_price: 58, y_uniqueness: 52, bubble_size: 42, positioning: 'Korean heritage home fragrance, accessible luxury', why_competitor: 'UK 진입 한국 홈프래그런스 브랜드.', win_points: 'K-라이프스타일·한국 전통 미학·지속가능 포장·가격 접근성' },
+    competitors: [
+      { name: 'Jo Malone London', price_range: '£50~£120', x_price: 75, y_uniqueness: 72, bubble_size: 55, tier: '럭셔리', positioning: '영국 정통 럭셔리 향수 하우스', why_competitor: '영국 홈/퍼스널 프래그런스 1티어.', win_points: '가격 대비 차별화, 한국 스토리·유니크 향조' },
+      { name: 'Diptyque', price_range: '£55~£90', x_price: 72, y_uniqueness: 78, bubble_size: 48, tier: '럭셔리', positioning: '프랑스 니치 향수', why_competitor: '캔들/룸스프레이 프리미엄 세그먼트.', win_points: '한국 헤리티지 스토리, 접근 가능한 가격대' },
+      { name: 'The White Company', price_range: '£20~£45', x_price: 32, y_uniqueness: 52, bubble_size: 45, tier: '프리미엄 매스', positioning: '영국 중산층 라이프스타일 브랜드', why_competitor: '홈·향 동일 채널.', win_points: '한국 정체성·유니크 향' },
+      { name: 'Yankee Candle', price_range: '£10~£30', x_price: 18, y_uniqueness: 35, bubble_size: 58, tier: '매스', positioning: '대중적 홈 프래그런스', why_competitor: '홈 프래그런스 채널 직접 경쟁.', win_points: '프리미엄·스토리·디자인으로 세그먼트 분리' },
+      { name: 'NEOM Organics', price_range: '£25~£65', x_price: 42, y_uniqueness: 68, bubble_size: 38, tier: '웰니스 프리미엄', positioning: '자연주의 웰니스', why_competitor: '웰니스·네추럴 타겟 겹침.', win_points: '한국 전통·문화 스토리, 독보적 향조' },
+    ],
+  };
+
+  function competitorDisplayName(raw) { var s = (raw || '').trim(); if (s.indexOf('Santokki') >= 0) return 'Santokki'; return s || '—'; }
+
+  function renderRisk(data) {
+    var items = (data.analysis && data.analysis.risks) || (data.analysis && data.analysis.risk_assessment && data.analysis.risk_assessment.risks) || (data.analysis && data.analysis.risk_assessment && data.analysis.risk_assessment.risk_items) || [];
+    var html = '';
+    items.forEach(function(r) {
+      var title = r.risk || r.name || r.risk_name || '';
+      html += '<div class="card"><h3>' + esc(title) + '</h3>';
+      var prob = r.probability_score != null ? r.probability_score : r.probability;
+      var imp = r.impact_score != null ? r.impact_score : r.impact;
+      if (prob != null && imp != null) html += '<p><span class="badge">Probability: ' + esc(String(prob)) + '</span> <span class="badge">Impact: ' + esc(String(imp)) + '</span></p>';
+      if (r.description) html += '<p class="risk-desc" style="color:#9a3412;margin:6px 0 0;line-height:1.5">' + esc(r.description) + '</p>';
+      if (r.mitigation) html += '<p><strong>Mitigation:</strong></p><p class="risk-mit" style="color:#166534;margin:4px 0 0;line-height:1.5">' + esc(r.mitigation) + '</p>';
+      html += '</div>';
+    });
+    document.getElementById('panelRisk').innerHTML = html || '<div class="card"><p>No risk data for this run.</p></div>';
+  }
+
+  function renderCompliance(data) {
+    var checklist = (data.analysis && data.analysis.compliance_checklist) || [];
+    var actionPlan = (data.analysis && data.analysis.action_plan) || [];
+    var cap = (data.analysis && data.analysis.compliance_action_plan) || {};
+    var html = '';
+    checklist.forEach(function(c) {
+      html += '<div class="card"><h3>' + esc(c.item || c.title || '') + '</h3>';
+      if (c.detail) html += alertBox(c.detail, 'info');
+      html += '</div>';
+    });
+    if (actionPlan.length) {
+      html += '<div class="card"><h3>Action plan</h3><ul class="bullet-list">';
+      actionPlan.forEach(function(a) {
+        html += '<li><strong>' + esc(a.action || a.step) + '</strong>';
+        if (a.detail) html += ' — ' + esc(a.detail);
+        if (a.timeline) html += ' <span class="text-muted">(' + esc(a.timeline) + ')</span>';
+        html += '</li>';
+      });
+      html += '</ul></div>';
+    }
+    if (cap.asa_requirements) html += '<div class="card"><h3>ASA requirements</h3>' + alertBox(cap.asa_requirements, 'warning') + '</div>';
+    if (cap.disclosure_guidelines) html += '<div class="card"><h3>Disclosure guidelines</h3>' + alertBox(cap.disclosure_guidelines, 'info') + '</div>';
+    document.getElementById('panelCompliance').innerHTML = html || '<div class="card"><p>No compliance data for this run.</p></div>';
+  }
+
+  function renderCompetitor(data) {
+    var comp = data.competitor || {};
+    var apiBrands = comp.competitor_analysis || comp.competitors || [];
+    var diff = comp.our_differentiation || {};
+    var threat = comp.competitive_threat_level || {};
+    var seed = SANTOKKI_BENCHMARK;
+    var posMap = [
+      { brand: 'Santokki', name: 'Santokki', displayName: 'Santokki', x_price: seed.santokki.x_price, y_uniqueness: seed.santokki.y_uniqueness, bubble_size: seed.santokki.bubble_size },
+      seed.competitors.map(function(c) { return { brand: c.name, name: c.name, displayName: c.name, x_price: c.x_price, y_uniqueness: c.y_uniqueness, bubble_size: c.bubble_size }; })
+    ].reduce(function(a, b) { return a.concat(b); }, []);
+
+    var html = '';
+    html += '<div class="card"><h3>Positioning map (Price competitiveness vs Uniqueness)</h3><p class="text-muted" style="font-size:0.85rem;margin-bottom:12px">가로: 가격 경쟁력(높을수록 저렴·유리) · 세로: 차별화/유니크함</p><div id="chartPos" class="chart-container"></div></div>';
+    var xComp = posMap.map(function(c) { return 100 - (c.x_price != null ? c.x_price : 50); });
+    var ranked = posMap.map(function(c, i) { return { displayName: c.displayName || c.brand || c.name, score: (xComp[i] + (c.y_uniqueness != null ? c.y_uniqueness : 0)) / 2 }; }).sort(function(a, b) { return b.score - a.score; });
+    html += '<div class="card"><h3>종합 순위 (Price competitiveness + Uniqueness)</h3><p class="text-muted" style="font-size:0.85rem;margin-bottom:8px">가격 경쟁력과 유니크함 평균 점수 기준 (고정 시드). Santokki는 아직 UK 시장에서 실측 평가가 없어 순위는 참고용입니다.</p><ol style="margin:0;padding-left:1.25rem;font-weight:500;line-height:1.7">';
+    ranked.forEach(function(r) { html += '<li style="margin-bottom:8px">' + esc(r.displayName) + ' <span class="text-muted">(종합 ' + Math.round(r.score) + '점)</span></li>'; });
+    html += '</ol></div>';
+    html += '<div class="card"><h3>Santokki as benchmark</h3><p><strong>Price:</strong> ' + esc(seed.santokki.price_range) + '</p><p><strong>Win points:</strong> ' + esc(seed.santokki.win_points) + '</p></div>';
+
+    var brands = apiBrands.length ? apiBrands : seed.competitors.map(function(c) { return { brand: c.name, name: c.name, tier: c.tier, positioning: c.positioning, strengths: [c.win_points], weaknesses: [], influencer_strategy_summary: c.why_competitor }; });
+    brands.forEach(function(b) {
+      var name = competitorDisplayName(b.brand || b.name);
+      var why = b.why_competitor || b.influencer_strategy_summary || '';
+      var win = Array.isArray(b.win_points) ? b.win_points.join('; ') : (b.win_points || (b.strengths && b.strengths.join('; ')));
+      html += '<div class="card"><h3>' + esc(name) + '</h3>';
+      if (b.tier) html += '<p class="text-muted" style="font-size:0.85rem">' + esc(b.tier) + (b.price_range ? ' · ' + esc(b.price_range) : '') + '</p>';
+      if (b.positioning) html += '<p><strong>Positioning:</strong> ' + esc(b.positioning) + '</p>';
+      if (why) html += '<p><strong>Why competitor:</strong></p><div class="comp-why">' + bullets(why) + '</div>';
+      if (win) html += '<p><strong>Win points (vs Santokki):</strong></p><div class="comp-win">' + bullets(win) + '</div>';
+      html += '</div>';
+    });
+    if (diff.unique_value_proposition) html += '<div class="card"><h3>Differentiation</h3>' + alertBox(diff.unique_value_proposition, 'success') + '</div>';
+    if (threat.threat_assessment) html += '<div class="card"><h3>Threat</h3>' + alertBox(threat.threat_assessment, 'warning') + '</div>';
+    document.getElementById('panelCompetitor').innerHTML = html;
+
+    if (typeof Plotly !== 'undefined') {
+      var names = posMap.map(function(c) { return c.displayName || c.brand || c.name; });
+      var xCompetitiveness = posMap.map(function(c) { return 100 - (c.x_price != null ? c.x_price : 50); });
+      var trace = { x: xCompetitiveness, y: posMap.map(function(c) { return c.y_uniqueness; }), text: names, mode: 'markers+text', type: 'scatter', textposition: 'top center', marker: { size: posMap.map(function(c) { return c.bubble_size || 30; }), color: posMap.map(function(c) { return (c.brand || c.name || '').indexOf('Santokki') >= 0 ? '#1e5c3a' : '#4d9b73'; }), opacity: 0.85 } };
+      Plotly.newPlot('chartPos', [trace], { title: { text: 'Competitor positioning (Santokki = benchmark)' }, xaxis: { title: 'Price competitiveness (higher = more affordable)', range: [0, 105] }, yaxis: { title: 'Uniqueness' }, height: 420, margin: LAYOUT.margin, paper_bgcolor: LAYOUT.paper_bgcolor, plot_bgcolor: LAYOUT.plot_bgcolor }, CONFIG);
+    }
+  }
+
+  function renderRoi(data) {
+    var roi = data.roi_data || {};
+    var scenarios = roi.scenarios || {};
+    var params = roi.params || {};
+    var html = '<div class="card"><h3>ROI scenarios</h3>';
+    html += '<p style="color:var(--gray-500);font-size:0.9rem;line-height:1.5">Monthly budget £' + (params.monthly_budget || 0).toLocaleString() + ' · Tier: ' + esc(params.tier) + ' · ' + (params.campaign_months || 0) + ' months</p>';
+    if (Object.keys(scenarios).length) {
+      html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px">';
+      for (var name in scenarios) {
+        var sc = scenarios[name];
+        var fs = sc.final_summary || {};
+        html += '<div class="card" style="padding:14px 16px"><strong>' + esc(name) + '</strong><br><span style="font-size:0.95rem">ROI ' + (fs.final_roi || 0) + 'x · Revenue £' + (fs.total_revenue || 0).toLocaleString() + '</span></div>';
+      }
+      html += '</div>';
+      html += '<div class="card"><h3>Monthly cumulative revenue</h3><div id="chartRoiLine" class="chart-container"></div></div>';
+      html += '<div class="card"><h3>Monthly conversions</h3><div id="chartRoiBar" class="chart-container"></div></div>';
+    }
+    html += '</div>';
+    document.getElementById('panelRoi').innerHTML = html || '<div class="card"><p>No ROI data for this run.</p></div>';
+
+    if (Object.keys(scenarios).length && typeof Plotly !== 'undefined') {
+      var colors = { '낙관': '#34d399', '보통': '#4C9BE8', '비관': '#f87171' };
+      var monthlyKey = Object.values(scenarios)[0].monthly_data ? 'monthly_data' : 'monthly_breakdown';
+      var firstSc = Object.values(scenarios)[0];
+      var firstMonths = firstSc && firstSc[monthlyKey];
+      if (firstMonths && firstMonths.length) {
+        var traces = [];
+        for (var name in scenarios) {
+          var months = scenarios[name][monthlyKey] || [];
+          traces.push({
+            name: name,
+            x: months.map(function(m) { return (m.month != null ? m.month : m.month_num) + 'M'; }),
+            y: months.map(function(m) { return m.cumulative_revenue || 0; }),
+            mode: 'lines+markers',
+            line: { color: colors[name] || '#4C9BE8', width: 2 }
+          });
+        }
+        var investKey = firstMonths[0].cumulative_spend != null ? 'cumulative_spend' : 'cumulative_investment';
+        traces.push({
+          name: 'Cumulative investment',
+          x: firstMonths.map(function(m) { return (m.month != null ? m.month : m.month_num) + 'M'; }),
+          y: firstMonths.map(function(m) { return m[investKey] || 0; }),
+          mode: 'lines',
+          line: { color: '#78716c', dash: 'dash' }
+        });
+        Plotly.newPlot('chartRoiLine', traces, { title: { text: 'Cumulative revenue vs investment' }, height: 400, legend: { orientation: 'h' }, margin: LAYOUT.margin, paper_bgcolor: LAYOUT.paper_bgcolor, plot_bgcolor: LAYOUT.plot_bgcolor }, CONFIG);
+
+        var barTraces = [];
+        for (var name in scenarios) {
+          var months = scenarios[name][monthlyKey] || [];
+          barTraces.push({
+            name: name,
+            x: months.map(function(m) { return (m.month != null ? m.month : m.month_num) + 'M'; }),
+            y: months.map(function(m) { return m.conversions || 0; }),
+            type: 'bar',
+            marker: { color: colors[name] }
+          });
+        }
+        Plotly.newPlot('chartRoiBar', barTraces, { title: { text: 'Monthly conversions' }, barmode: 'group', height: 360, margin: LAYOUT.margin, paper_bgcolor: LAYOUT.paper_bgcolor, plot_bgcolor: LAYOUT.plot_bgcolor }, CONFIG);
+      }
+    }
+  }
+
+  document.querySelectorAll('.strategy-tab').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.strategy-tab').forEach(function(b) { b.classList.remove('active'); });
+      document.querySelectorAll('.strategy-panel').forEach(function(p) { p.classList.remove('active'); });
+      btn.classList.add('active');
+      var id = 'panel' + btn.dataset.tab.charAt(0).toUpperCase() + btn.dataset.tab.slice(1);
+      var el = document.getElementById(id);
+      if (el) el.classList.add('active');
+    });
+  });
+
+  function api(base, path) {
+    return fetch((base || '').replace(/\/$/, '') + path).then(function(r) { if (!r.ok) throw new Error(r.status + ' ' + path); return r.json(); });
+  }
+  function runAnalyze(url, body) {
+    return fetch((url || '').replace(/\/$/, '') + '/api/analyze', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      .then(function(r) { if (!r.ok) return r.json().then(function(e) { throw new Error(e.detail || r.status); }); return r.json(); });
+  }
+
+  function loadProducts() {
+    var base = document.getElementById('apiUrl').value.replace(/\/$/, '');
+    api(base, '/api/products').then(function(data) {
+      var products = data.products || {};
+      var sel = document.getElementById('productSelect');
+      sel.innerHTML = Object.keys(products).map(function(k) { return '<option value="' + esc(k) + '">' + esc(k) + '</option>'; }).join('');
+    }).catch(function() {
+      document.getElementById('productSelect').innerHTML = '<option value="">Set API URL and ensure backend is running</option>';
+    });
+  }
+
+  document.getElementById('btnRun').addEventListener('click', function() {
+    var base = document.getElementById('apiUrl').value.replace(/\/$/, '');
+    var product = document.getElementById('productSelect').value;
+    if (!product) { alert('Select a product.'); return; }
+    var btn = document.getElementById('btnRun');
+    btn.disabled = true;
+    btn.textContent = 'Analysing…';
+    var prog = document.getElementById('progressArea');
+    prog.style.display = 'block';
+    prog.innerHTML = '<div class="step">Running analysis…</div>';
+    var body = {
+      product_name: product,
+      model: 'gpt-4o-mini',
+      use_perplexity: true,
+      use_competitor: true,
+      use_roi: true,
+      use_timeline: false,
+      use_hashtag: false,
+      roi_monthly_budget: parseFloat(document.getElementById('roiBudget').value) || 1000,
+      roi_tier: document.getElementById('roiTier').value,
+      roi_months: parseInt(document.getElementById('roiMonths').value, 10) || 6,
+      roi_product_price: 50,
+      timeline_launch_month: 3,
+      timeline_weeks: 12
+    };
+    runAnalyze(base, body)
+      .then(function(result) {
+        prog.innerHTML = (result.steps || []).map(function(s) { return '<div class="step ' + (s.status === 'success' ? 'ok' : 'err') + '">' + esc(s.step) + ': ' + esc(s.message) + '</div>'; }).join('');
+        document.getElementById('resultWrap').style.display = 'block';
+        renderRisk(result);
+        renderCompliance(result);
+        renderCompetitor(result);
+        renderRoi(result);
+      })
+      .catch(function(e) {
+        prog.innerHTML = '<div class="step err">Error: ' + esc(e.message) + '</div>';
+      })
+      .then(function() {
+        btn.disabled = false;
+        btn.textContent = 'Run strategy analysis';
+      });
+  });
+
+  document.getElementById('apiUrl').addEventListener('change', loadProducts);
+  loadProducts();
+})();
+  </script>
+</body>
+</html>

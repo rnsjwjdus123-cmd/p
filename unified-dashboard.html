@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>if (window.location.pathname.endsWith('unified-dashboard.html') && !window.location.search) { window.location.replace('hub.html#dashboard'); }</script>
+  <title>Santokki Dashboard | Stats · Prompts · Influencer · Product Strategy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .ud-page { max-width: 1200px; margin: 0 auto; padding: var(--space-xl) var(--space-lg); }
+    .ud-hero { margin-bottom: var(--space-2xl); }
+    .ud-hero h1 { font-family: var(--font-display); font-size: 1.75rem; color: var(--gray-800); margin-bottom: 6px; }
+    .ud-hero p { color: var(--gray-500); font-size: 0.9rem; }
+    .ud-banners { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 28px; }
+    @media (max-width: 700px) { .ud-banners { grid-template-columns: 1fr; } }
+    .ud-banner { display: block; background: #fff; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; text-decoration: none; color: inherit; transition: box-shadow .2s, border-color .2s; }
+    .ud-banner:hover { border-color: var(--accent); box-shadow: 0 4px 12px rgba(30,92,58,.08); }
+    .ud-banner h2 { font-family: var(--font-display); font-size: 1.2rem; color: var(--gray-800); margin-bottom: 8px; }
+    .ud-banner p { font-size: 0.85rem; color: var(--gray-500); margin: 0; }
+    .ud-banner .icon { font-size: 1.8rem; margin-bottom: 8px; }
+    .ud-content { min-height: 480px; background: #fff; border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+    .ud-content iframe { width: 100%; height: 72vh; min-height: 520px; border: 0; display: block; }
+    .ud-content .panel { padding: 24px; display: none; }
+    .ud-content .panel.active { display: block; }
+    .ud-panel h3 { font-family: var(--font-display); font-size: 1.1rem; margin-bottom: 12px; color: var(--gray-800); }
+    .ud-setup { background: var(--off-white); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px 20px; margin-bottom: 20px; }
+    .ud-setup label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--gray-600); margin-bottom: 6px; }
+    .ud-setup select, .ud-setup input { padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-family: inherit; max-width: 280px; }
+    .ud-setup .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 10px; }
+    .ud-setup .row > * { flex: 0 0 auto; }
+    .btn-run { background: var(--accent); color: #fff; border: none; padding: 10px 20px; border-radius: var(--radius-md); font-weight: 600; cursor: pointer; font-family: inherit; font-size: 0.9rem; }
+    .btn-run:hover { background: var(--accent-hover); }
+    .btn-run:disabled { opacity: 0.6; cursor: not-allowed; }
+    .ud-card { background: var(--off-white); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px 20px; margin-bottom: 14px; }
+    .ud-card h4 { font-size: 0.9rem; margin-bottom: 8px; color: var(--gray-700); }
+    .ud-email-box { background: #fff; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; white-space: pre-wrap; font-size: 0.85rem; font-family: inherit; line-height: 1.5; margin: 12px 0; }
+    .ud-email-actions { display: flex; gap: 8px; margin-top: 10px; }
+    .ud-email-actions button { padding: 8px 16px; border-radius: var(--radius-sm); font-size: 0.85rem; cursor: pointer; font-family: inherit; }
+    .ud-email-actions .btn-copy { background: var(--accent); color: #fff; border: none; }
+    .ud-email-actions .btn-copy:hover { background: var(--accent-hover); }
+    .ud-email-actions .btn-mailto { background: #fff; border: 1px solid var(--border); color: var(--gray-700); text-decoration: none; }
+    .ud-email-actions .btn-mailto:hover { background: var(--green-50); color: var(--accent); }
+    .ud-nav { padding: var(--space-lg) var(--space-2xl); border-bottom: 1px solid var(--border); background: rgba(250,250,249,0.98); }
+    .ud-nav .nav { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+    .ud-nav .logo { display: inline-flex; align-items: center; gap: 0.5rem; font-family: var(--font-display); font-size: 1.35rem; font-weight: 600; color: var(--gray-800); text-decoration: none; }
+    .ud-nav .logo img { width: 40px; height: 40px; object-fit: contain; }
+    .ud-nav .back { font-size: 0.88rem; color: var(--gray-500); text-decoration: none; }
+    .ud-nav .back:hover { color: var(--accent); }
+    .bullet-list { margin: 0; padding-left: 1.2rem; }
+    .progress-log { font-size: 0.82rem; color: var(--gray-500); margin-bottom: 16px; }
+  </style>
+</head>
+<body>
+  <header class="ud-nav">
+    <div class="nav">
+      <a href="index.html" class="logo">
+        <img src="assets/products/santokkilogo.png" alt="Santokki">
+        <span>Santokki</span>
+      </a>
+      <a href="index.html" class="back">← Back to Home</a>
+    </div>
+  </header>
+
+  <main class="ud-page">
+    <div class="ud-hero">
+      <h1>Santokki Dashboard</h1>
+      <p>Firebase stats, prompt generator, influencer discovery, and product strategy in one place.</p>
+    </div>
+
+    <div class="ud-banners">
+      <a href="#" class="ud-banner" data-view="firebase">
+        <span class="icon">📊</span>
+        <h2>Firebase stats</h2>
+        <p>Scent test results and real-time statistics</p>
+      </a>
+      <a href="#" class="ud-banner" data-view="prompt">
+        <span class="icon">✨</span>
+        <h2>Prompt generator</h2>
+        <p>Generate ad scripts and post copy from stats</p>
+      </a>
+      <a href="#" class="ud-banner" data-view="influencer">
+        <span class="icon">👤</span>
+        <h2>Influencer discovery</h2>
+        <p>Find verified accounts and outreach email (English)</p>
+      </a>
+      <a href="#" class="ud-banner" data-view="product">
+        <span class="icon">🎯</span>
+        <h2>Product strategy</h2>
+        <p>Target persona, UK fit, and selling points</p>
+      </a>
+    </div>
+
+    <div class="ud-content">
+      <div id="viewFirebase" class="panel-wrap" style="display:none">
+        <iframe src="santokki/dashboard.html" title="Firebase Dashboard"></iframe>
+      </div>
+      <div id="viewPrompt" class="panel-wrap" style="display:none">
+        <iframe src="prompt-generator.html" title="Prompt Generator"></iframe>
+      </div>
+      <div id="viewInfluencer" class="panel-wrap" style="display:none">
+        <div class="panel ud-panel active">
+          <div class="ud-setup">
+            <div class="row">
+              <div><label>Analysis API URL</label><input type="text" id="infApiUrl" value="http://localhost:8000"></div>
+              <div><label>Product</label><select id="infProduct"><option value="">Loading…</option></select></div>
+              <div><label>&nbsp;</label><button type="button" class="btn-run secondary" id="infLoadProducts" style="background:#fff;color:var(--gray-700);border:1px solid var(--border)">Load products</button></div>
+              <div><label>&nbsp;</label><button type="button" class="btn-run" id="infRun">Run analysis</button></div>
+            </div>
+            <p id="infProductStatus" style="font-size:0.8rem;color:var(--gray-500);margin-top:4px"></p>
+            <div id="infProgress" class="progress-log" style="display:none"></div>
+          </div>
+          <div id="infResult"></div>
+        </div>
+      </div>
+      <div id="viewProduct" class="panel-wrap" style="display:none">
+        <div class="panel ud-panel active">
+          <div class="ud-setup">
+            <div class="row">
+              <div><label>Analysis API URL</label><input type="text" id="prodApiUrl" value="http://localhost:8000"></div>
+              <div><label>Product</label><select id="prodProduct"><option value="">Loading…</option></select></div>
+              <div><label>&nbsp;</label><button type="button" class="btn-run secondary" id="prodLoadProducts" style="background:#fff;color:var(--gray-700);border:1px solid var(--border)">Load products</button></div>
+              <div><label>&nbsp;</label><button type="button" class="btn-run" id="prodRun">Run analysis</button></div>
+            </div>
+            <p id="prodProductStatus" style="font-size:0.8rem;color:var(--gray-500);margin-top:4px"></p>
+            <div id="prodProgress" class="progress-log" style="display:none"></div>
+          </div>
+          <div id="prodResult"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+(function() {
+  function esc(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function bullets(text) {
+    if (!text) return '';
+    const lines = String(text).split(/\n/).map(l => l.trim()).filter(Boolean);
+    if (lines.length <= 1) return '<p>' + esc(text) + '</p>';
+    return '<ul class="bullet-list">' + lines.map(l => '<li>' + esc(l.replace(/^[\d.)\-•]+\s*/, '')) + '</li>').join('') + '</ul>';
+  }
+
+  // View switching
+  document.querySelectorAll('.ud-banner').forEach(b => {
+    b.addEventListener('click', e => { e.preventDefault(); openView(b.dataset.view); });
+  });
+  function openView(name) {
+    document.querySelectorAll('.ud-banner').forEach(x => x.style.background = '');
+    const banner = document.querySelector('.ud-banner[data-view="' + name + '"]');
+    if (banner) banner.style.background = 'var(--green-50)';
+    document.querySelectorAll('.ud-content > .panel-wrap').forEach(w => w.style.display = 'none');
+    const wrap = document.getElementById('view' + name.charAt(0).toUpperCase() + name.slice(1));
+    if (wrap) wrap.style.display = 'block';
+  }
+
+  // Shared analysis cache (product name -> result)
+  let analysisCache = { product: null, data: null };
+
+  async function api(base, path) {
+    const r = await fetch((base || '').replace(/\/$/, '') + path);
+    if (!r.ok) throw new Error(r.status + ' ' + path);
+    return r.json();
+  }
+  async function runAnalyze(base, product) {
+    const r = await fetch((base || '').replace(/\/$/, '') + '/api/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        product_name: product,
+        model: 'gpt-4o-mini',
+        use_perplexity: true,
+        use_competitor: true,
+        use_roi: true,
+        use_timeline: false,
+        use_hashtag: false,
+        roi_monthly_budget: 1000,
+        roi_tier: '마이크로',
+        roi_months: 6,
+        roi_product_price: 50,
+        timeline_launch_month: 3,
+        timeline_weeks: 12,
+      }),
+    });
+    if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.detail || r.status); }
+    return r.json();
+  }
+
+  // Full email in English (for influencer outreach)
+  function buildFullEmail(productName, tmpl) {
+    const subject = (tmpl && tmpl.subject_line) || ('Collaboration – ' + productName);
+    const opening = (tmpl && tmpl.opening) || '';
+    const keyPts = (tmpl && tmpl.key_points && tmpl.key_points.length) ? tmpl.key_points.map(p => '  • ' + p).join('\n') : '  • Unique K-fragrance crafted with Korean heritage';
+    const cta = (tmpl && tmpl.cta) || 'Would this month work for a quick exchange?';
+    return `Subject: ${subject}
+
+Hi [Influencer Name / @handle],
+
+${opening}
+
+I've been genuinely enjoying your content — particularly [mention a specific recent post or theme]. Your audience's response really stood out to me.
+
+I'm [Your Name], founder of Santokki, a small Korean home fragrance brand currently entering the UK market.
+
+About ${productName}:
+${keyPts}
+
+We're flexible on collaboration:
+  Option A – Gifting only (no obligation to post)
+  Option B – Paid partnership + product
+  Option C – Revenue share + product
+
+Compliance: We fully comply with UK ASA guidelines. All posts labelled with #ad.
+
+${cta}
+
+Warm regards,
+[Your Name]
+Founder, Santokki`;
+  }
+
+  function loadProducts(base, selId, statusId) {
+    const sel = document.getElementById(selId);
+    const statusEl = statusId ? document.getElementById(statusId) : null;
+    if (!sel) return;
+    if (statusEl) statusEl.textContent = 'Loading products…';
+    api(base, '/api/products').then(data => {
+      const products = data.products || {};
+      const keys = Object.keys(products);
+      sel.innerHTML = keys.length ? keys.map(k => '<option value="' + esc(k) + '">' + esc(k) + '</option>').join('') : '<option value="">No products</option>';
+      if (statusEl) statusEl.textContent = keys.length ? 'Loaded ' + keys.length + ' product(s). Select one and click Run analysis.' : 'No products returned.';
+    }).catch(e => {
+      sel.innerHTML = '<option value="">Failed — check API URL</option>';
+      if (statusEl) statusEl.innerHTML = 'Could not load products. Make sure the Analysis API is running at <code style="background:var(--off-white);padding:2px 6px">' + esc(base || 'http://localhost:8000') + '</code> and click "Load products" again.';
+    });
+  }
+
+  // Influencer panel — Load products button
+  document.getElementById('infLoadProducts').addEventListener('click', () => {
+    loadProducts(document.getElementById('infApiUrl').value, 'infProduct', 'infProductStatus');
+  });
+  document.getElementById('infRun').addEventListener('click', async () => {
+    const base = document.getElementById('infApiUrl').value;
+    const product = document.getElementById('infProduct').value;
+    const prog = document.getElementById('infProgress');
+    prog.style.display = 'block';
+    if (!product) {
+      prog.innerHTML = 'Select a product first. If the dropdown is empty or says "Failed", make sure the Analysis API (<code>http://localhost:8000</code>) is running, then click <strong>Load products</strong>.';
+      return;
+    }
+    const btn = document.getElementById('infRun');
+    btn.disabled = true;
+    prog.textContent = 'Running analysis… (this may take 30–60 seconds)';
+    try {
+      const result = await runAnalyze(base, product);
+      analysisCache = { product, data: result };
+      prog.innerHTML = (result.steps || []).map(s => s.step + ': ' + s.message).join('<br>');
+      const inf = result.analysis?.influencer_strategy || {};
+      const cs = result.analysis?.contact_strategy || {};
+      const verified = result.verified_accounts || [];
+      let html = '';
+      html += '<div class="ud-card"><h4>Primary influencer type</h4>' + bullets(inf.primary_type + '\n' + (inf.primary_reason || '')) + '</div>';
+      html += '<div class="ud-card"><h4>Recommended tier &amp; follower range</h4>' + bullets((inf.recommended_tier || '') + '\n' + (inf.tier_reason || '')) + '</div>';
+      if (verified.length) {
+        html += '<div class="ud-card"><h4>Verified accounts</h4>';
+        verified.forEach(acc => {
+          const h = typeof acc === 'object' ? (acc.handle || '') : acc;
+          const why = typeof acc === 'object' ? (acc.why_fit || '') : '';
+          html += '<p><strong>' + esc(h) + '</strong><br><span style="color:var(--gray-500);font-size:0.85rem">' + esc(why) + '</span></p>';
+        });
+        html += '</div>';
+      }
+      const fullEmail = buildFullEmail(product, cs.email_template || {});
+      html += '<div class="ud-card"><h4>Outreach email (English) — copy or send</h4>';
+      html += '<div class="ud-email-box" id="infEmailBody">' + esc(fullEmail) + '</div>';
+      html += '<div class="ud-email-actions"><button type="button" class="btn-copy" data-copy="infEmailBody">Copy to clipboard</button>';
+      html += '<a href="#" class="btn-mailto" id="infMailto">Open in mail client</a></div></div>';
+      document.getElementById('infResult').innerHTML = html;
+      document.querySelector('#infResult .btn-copy').addEventListener('click', () => {
+        const el = document.getElementById('infEmailBody');
+        navigator.clipboard.writeText(el.innerText || el.textContent);
+        const b = document.querySelector('#infResult .btn-copy');
+        const t = b.textContent; b.textContent = 'Copied!'; setTimeout(() => { b.textContent = t; }, 1500);
+      });
+      document.getElementById('infMailto').addEventListener('click', e => {
+        e.preventDefault();
+        const body = document.getElementById('infEmailBody').innerText || document.getElementById('infEmailBody').textContent || '';
+        window.location.href = 'mailto:?body=' + encodeURIComponent(body);
+      });
+    } catch (e) {
+      prog.innerHTML = 'Error: ' + esc(e.message);
+    }
+    btn.disabled = false;
+  });
+  document.getElementById('infApiUrl').addEventListener('change', () => loadProducts(document.getElementById('infApiUrl').value, 'infProduct'));
+  loadProducts(document.getElementById('infApiUrl').value, 'infProduct');
+
+  // Product strategy panel
+  function renderProductStrategy(data) {
+    const pa = data.analysis?.product_analysis || {};
+    let html = '';
+    html += '<div class="ud-card"><h4>Target persona</h4>' + bullets(pa.target_persona) + '</div>';
+    html += '<div class="ud-card"><h4>UK cultural fit</h4>' + bullets(pa.uk_cultural_fit) + '</div>';
+    html += '<div class="ud-card"><h4>Market opportunity</h4>' + bullets(pa.market_size_context) + '</div>';
+    html += '<div class="ud-card"><h4>K-lifestyle relevance</h4>' + bullets(pa.k_lifestyle_relevance) + '</div>';
+    if (pa.key_selling_points && pa.key_selling_points.length)
+      html += '<div class="ud-card"><h4>Key selling points</h4><ul class="bullet-list">' + pa.key_selling_points.map(p => '<li>' + esc(p) + '</li>').join('') + '</ul></div>';
+    document.getElementById('prodResult').innerHTML = html || '<div class="ud-card"><p>Run analysis to see product strategy.</p></div>';
+  }
+
+  // Product strategy panel — Load products button
+  document.getElementById('prodLoadProducts').addEventListener('click', () => {
+    loadProducts(document.getElementById('prodApiUrl').value, 'prodProduct', 'prodProductStatus');
+  });
+  document.getElementById('prodRun').addEventListener('click', async () => {
+    const base = document.getElementById('prodApiUrl').value;
+    const product = document.getElementById('prodProduct').value;
+    const prog = document.getElementById('prodProgress');
+    prog.style.display = 'block';
+    if (!product) {
+      prog.innerHTML = 'Select a product first. If the dropdown is empty or says "Failed", make sure the Analysis API (<code>http://localhost:8000</code>) is running, then click <strong>Load products</strong>.';
+      return;
+    }
+    const btn = document.getElementById('prodRun');
+    btn.disabled = true;
+    prog.textContent = 'Running analysis… (this may take 30–60 seconds)';
+    try {
+      let result;
+      if (analysisCache.product === product && analysisCache.data) result = analysisCache.data;
+      else result = await runAnalyze(base, product);
+      analysisCache = { product, data: result };
+      prog.innerHTML = (result.steps || []).map(s => s.step + ': ' + s.message).join('<br>');
+      renderProductStrategy(result);
+    } catch (e) {
+      prog.innerHTML = 'Error: ' + esc(e.message);
+    }
+    btn.disabled = false;
+  });
+  document.getElementById('prodApiUrl').addEventListener('change', () => loadProducts(document.getElementById('prodApiUrl').value, 'prodProduct', 'prodProductStatus'));
+  loadProducts(document.getElementById('prodApiUrl').value, 'prodProduct', 'prodProductStatus');
+})();
+  </script>
+</body>
+</html>

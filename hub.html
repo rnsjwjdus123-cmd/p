@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Santokki Hub | Strategy &amp; Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+  <style>
+    .hub-nav { padding: var(--space-lg) var(--space-2xl); border-bottom: 1px solid var(--border); background: rgba(250,250,249,0.98); }
+    .hub-nav .nav { max-width: 1000px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+    .hub-nav .logo { display: inline-flex; align-items: center; gap: 0.5rem; font-family: var(--font-display); font-size: 1.35rem; font-weight: 600; color: var(--gray-800); text-decoration: none; }
+    .hub-nav .logo img { width: 40px; height: 40px; object-fit: contain; }
+    .hub-nav .back { font-size: 0.88rem; color: var(--gray-500); text-decoration: none; }
+    .hub-nav .back:hover { color: var(--accent); }
+
+    #hub-view { max-width: 920px; margin: 0 auto; padding: var(--space-2xl) var(--space-lg); }
+    .hub-hero { text-align: center; margin-bottom: var(--space-2xl); }
+    .hub-hero h1 { font-family: var(--font-display); font-size: 2rem; color: var(--gray-800); margin-bottom: var(--space-sm); }
+    .hub-hero p { color: var(--gray-500); font-size: 0.95rem; }
+
+    .hub-paths { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 32px; }
+    @media (max-width: 640px) { .hub-paths { grid-template-columns: 1fr; } }
+    .hub-path { display: block; text-decoration: none; color: inherit; background: #fff; border: 2px solid var(--border); border-radius: var(--radius-lg); padding: 28px 24px; transition: border-color .2s, box-shadow .2s; }
+    .hub-path:hover { border-color: var(--accent); box-shadow: 0 8px 24px rgba(30,92,58,.1); }
+    .hub-path h2 { font-family: var(--font-display); font-size: 1.35rem; font-weight: 700; color: var(--gray-800); margin-bottom: 8px; }
+    .hub-path .when { display: inline-block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: .08em; color: var(--gray-600); margin-bottom: 8px; font-weight: 600; padding: 4px 10px; border-radius: 999px; background: var(--off-white); border: 1px solid var(--border); }
+    .hub-path p { font-size: 0.9rem; color: var(--gray-600); margin: 0; line-height: 1.5; }
+    .hub-path .arrow { margin-top: 12px; font-size: 0.85rem; color: var(--accent); font-weight: 600; }
+
+    .hub-tips { margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+    @media (max-width: 640px) { .hub-tips { grid-template-columns: 1fr; } }
+    .hub-tip { padding: 0; border: none; background: none; }
+    .hub-tip strong { font-size: 0.8rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: .06em; display: block; margin-bottom: 4px; }
+    .hub-tip p { margin: 0; font-size: 0.85rem; color: var(--gray-600); line-height: 1.4; }
+    .hub-footer { margin-top: 40px; padding-top: 24px; text-align: center; font-size: 0.8rem; color: var(--gray-400); }
+    .hub-footer a { color: var(--gray-500); text-decoration: none; }
+    .hub-footer a:hover { color: var(--accent); }
+
+    .hub-sheet { margin-top: 24px; }
+    .hub-sheet-links { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: stretch; }
+    @media (max-width: 640px) { .hub-sheet-links { grid-template-columns: 1fr; } }
+    .hub-sheet-link { display: inline-flex; align-items: center; gap: 8px; padding: 12px 18px; background: var(--off-white); border: 1px solid var(--green-200); border-radius: var(--radius-md); color: var(--accent); text-decoration: none; font-size: 0.9rem; font-weight: 600; transition: background .2s, border-color .2s; width: 100%; box-sizing: border-box; }
+    .hub-sheet-link:hover { background: var(--green-50); border-color: var(--accent); }
+    .hub-sheet-icon { font-size: 1.2rem; }
+    .hub-sheet-links > span { min-width: 0; }
+
+    .view-breadcrumb { max-width: 1000px; margin: 0 auto; padding: 12px var(--space-lg) 0; font-size: 0.85rem; color: var(--gray-500); }
+    .view-breadcrumb a { color: var(--accent); text-decoration: none; font-weight: 600; }
+    .view-breadcrumb a:hover { text-decoration: underline; }
+
+    .hub-iframe-wrap { max-width: 1000px; margin: 0 auto; padding: var(--space-lg); }
+    .hub-iframe-wrap iframe { width: 100%; height: 80vh; min-height: 600px; border: 1px solid var(--border); border-radius: var(--radius-lg); display: block; }
+  </style>
+</head>
+<body>
+  <header class="hub-nav">
+    <div class="nav">
+      <a href="index.html" class="logo">
+        <img src="assets/products/santokkilogo.png" alt="Santokki">
+        <span>Santokki</span>
+      </a>
+      <a href="index.html" class="back">← Back to Home</a>
+    </div>
+  </header>
+
+  <main id="hub-view">
+    <div class="hub-hero">
+      <h1>Santokki Hub</h1>
+      <p>시장 진입 전략과 운영 대시보드를 한 곳에서. 용도에 맞는 경로를 선택하세요.</p>
+    </div>
+    <div class="hub-paths">
+      <a href="#strategy" id="hub-go-strategy" class="hub-path">
+        <span class="when">시장 진입 전</span>
+        <h2>Strategy</h2>
+        <p>리스크·컴플라이언스·경쟁사 포지셔닝·ROI 시뮬레이션. UK 시장 진입 전 사전 분석용.</p>
+        <span class="arrow">Strategy로 이동 →</span>
+      </a>
+      <a href="#dashboard" id="hub-go-dashboard" class="hub-path">
+        <span class="when">통계 확보 후</span>
+        <h2>Dashboard</h2>
+        <p>Firebase 퀴즈 통계, 프롬프트 생성, 인플루언서 발굴, 제품 전략. 실측 데이터 기반 운영용.</p>
+        <span class="arrow">Dashboard로 이동 →</span>
+      </a>
+    </div>
+    <section class="hub-tips" aria-label="언제 어떤 경로를 쓸지">
+      <div class="hub-tip">
+        <strong>Strategy를 쓰면 좋을 때</strong>
+        <p>UK 시장 데이터가 거의 없을 때, 리스크·규제·경쟁사·ROI를 보고 진입 여부·예산을 결정할 때.</p>
+      </div>
+      <div class="hub-tip">
+        <strong>Dashboard를 쓰면 좋을 때</strong>
+        <p>퀴즈·테스트 통계가 쌓인 뒤, 그 데이터로 광고 문구·인플루언서·제품 전략을 돌릴 때.</p>
+      </div>
+    </section>
+    <section class="hub-sheet">
+      <div class="hub-sheet-links">
+        <span id="hubSheetBlock" style="display:none">
+          <a href="#" id="hubSheetLink" target="_blank" rel="noopener" class="hub-sheet-link">
+            <span class="hub-sheet-icon" aria-hidden="true">📊</span>
+            <span>일일 프롬프트가 저장되는 구글 시트에서 보기</span>
+          </a>
+        </span>
+        <a href="http://localhost:5678/home/workflows" target="_blank" rel="noopener" class="hub-sheet-link">
+          <span class="hub-sheet-icon" aria-hidden="true">⚡</span>
+          <span>n8n 워크플로우</span>
+        </a>
+      </div>
+    </section>
+    <footer class="hub-footer">
+      <a href="index.html">홈</a> · <a href="hub.html#strategy">Strategy</a> · <a href="hub.html#dashboard">Dashboard</a>
+    </footer>
+  </main>
+
+  <div id="strategy-view" style="display:none">
+    <div class="view-breadcrumb">
+      <a href="#" id="strategy-back-hub">← Hub</a> &nbsp;/&nbsp; Strategy
+    </div>
+    <div class="hub-iframe-wrap">
+      <iframe src="strategy.html" title="Brand Success Strategy"></iframe>
+    </div>
+  </div>
+
+  <div id="dashboard-view" style="display:none">
+    <div class="view-breadcrumb">
+      <a href="#" id="dashboard-back-hub">← Hub</a> &nbsp;/&nbsp; Dashboard
+    </div>
+    <div class="hub-iframe-wrap">
+      <iframe src="unified-dashboard.html?embed=1" title="Dashboard"></iframe>
+    </div>
+  </div>
+
+  <script>
+(function() {
+  function applyHash() {
+    var hash = (window.location.hash || '').replace(/^#/, '');
+    var hub = document.getElementById('hub-view');
+    var strategy = document.getElementById('strategy-view');
+    var dashboard = document.getElementById('dashboard-view');
+    hub.style.display = hash === 'strategy' || hash === 'dashboard' ? 'none' : 'block';
+    strategy.style.display = hash === 'strategy' ? 'block' : 'none';
+    dashboard.style.display = hash === 'dashboard' ? 'block' : 'none';
+  }
+  window.addEventListener('hashchange', applyHash);
+  if (window.location.hash) applyHash();
+
+  document.getElementById('strategy-back-hub').addEventListener('click', function(e) { e.preventDefault(); window.location.hash = ''; });
+  document.getElementById('dashboard-back-hub').addEventListener('click', function(e) { e.preventDefault(); window.location.hash = ''; });
+
+  // 구글 시트 링크: 서버 /api/sheet-url 에서 설정 여부 확인 후 표시
+  (function setHubSheetLink() {
+    var base = window.location.origin;
+    fetch(base + '/api/sheet-url').then(function(r) { return r.json(); }).then(function(data) {
+      if (data.configured && (data.url || data.gamePostManagementUrl)) {
+        var link = document.getElementById('hubSheetLink');
+        var block = document.getElementById('hubSheetBlock');
+        if (link && block) {
+          link.href = data.gamePostManagementUrl || data.url;
+          block.style.display = 'block';
+        }
+      }
+    }).catch(function() {});
+  })();
+})();
+  </script>
+</body>
+</html>

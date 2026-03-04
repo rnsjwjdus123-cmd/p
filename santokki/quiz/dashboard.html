@@ -334,15 +334,18 @@ let allDocs = [];
 let filteredDocs = [];
 let currentFilter = '30d';
 let charts = {};
+let manychatFunnelStats = { commentKeywordCount: null, quizLinkDmCount: null };
 
 // ──────────────────────────────────────────────────────────
 // Data Loading
 // ──────────────────────────────────────────────────────────
 async function loadData() {
   try {
-    const snapshot = await db.collection('quiz_results')
-      .orderBy('created_at', 'desc')
-      .get();
+    const [snapshot, funnelRes] = await Promise.all([
+      db.collection('quiz_results').orderBy('created_at', 'desc').get(),
+      fetch('/api/funnel-stats').then(r => r.json()).catch(() => ({ commentKeywordCount: 0, quizLinkDmCount: 0 }))
+    ]);
+    manychatFunnelStats = funnelRes;
 
     allDocs = snapshot.docs.map(doc => {
       const d = doc.data();
@@ -455,11 +458,20 @@ function renderFunnel() {
   const total = filteredDocs.length;
   const sent = filteredDocs.filter(d => d.dm_sent === true).length;
   const pct = total > 0 ? Math.round(sent / total * 100) : 0;
+  const c1 = manychatFunnelStats.commentKeywordCount;
+  const c2 = manychatFunnelStats.quizLinkDmCount;
+  const hasManyChat = (c1 != null && c1 > 0) || (c2 != null && c2 > 0);
+  const step1 = hasManyChat && c1 != null
+    ? `<div class="funnel-step"><div class="funnel-label">댓글 키워드 작성</div><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:100%;background:var(--green-500)">${Number(c1).toLocaleString()}명</div></div><div class="funnel-pct" style="color:var(--green-600)">100%</div></div>`
+    : `<div class="funnel-step" style="opacity:.45"><div class="funnel-label">댓글 키워드 작성</div><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:100%;background:var(--gray-200);color:var(--text3);font-style:italic">(ManyChat 연동 후)</div></div><div class="funnel-pct" style="color:var(--text3)">—</div></div>`;
+  const step2 = hasManyChat && c2 != null
+    ? `<div class="funnel-step"><div class="funnel-label">퀴즈 링크 DM 수신</div><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:100%;background:var(--green-400)">${Number(c2).toLocaleString()}명</div></div><div class="funnel-pct" style="color:var(--green-600)">100%</div></div>`
+    : `<div class="funnel-step" style="opacity:.45"><div class="funnel-label">퀴즈 링크 DM 수신</div><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:100%;background:var(--gray-200);color:var(--text3);font-style:italic">(ManyChat 연동 후)</div></div><div class="funnel-pct" style="color:var(--text3)">—</div></div>`;
 
   document.getElementById('funnelChart').innerHTML = `
-    <div class="funnel-step" style="opacity:.45"><div class="funnel-label">댓글 키워드 작성</div><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:100%;background:var(--gray-200);color:var(--text3);font-style:italic">(ManyChat 연동 후)</div></div><div class="funnel-pct" style="color:var(--text3)">—</div></div>
+    ${step1}
     <div class="funnel-drop">↓</div>
-    <div class="funnel-step" style="opacity:.45"><div class="funnel-label">퀴즈 링크 DM 수신</div><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:100%;background:var(--gray-200);color:var(--text3);font-style:italic">(ManyChat 연동 후)</div></div><div class="funnel-pct" style="color:var(--text3)">—</div></div>
+    ${step2}
     <div class="funnel-drop">↓</div>
     <div class="funnel-step"><div class="funnel-label">퀴즈 완료</div><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:100%;background:var(--green-500)">${total.toLocaleString()}명</div></div><div class="funnel-pct" style="color:var(--green-600)">100%</div></div>
     <div class="funnel-drop">↓ ${100-pct}% 이탈</div>
