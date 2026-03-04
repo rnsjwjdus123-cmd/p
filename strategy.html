@@ -212,6 +212,7 @@
 
   function renderRoi(data) {
     var roi = data.roi_data || {};
+    var insights = data.roi_insights || {};
     var scenarios = roi.scenarios || {};
     var params = roi.params || {};
     var html = '<div class="card"><h3>ROI scenarios</h3>';
@@ -228,6 +229,21 @@
       html += '<div class="card"><h3>Monthly conversions</h3><div id="chartRoiBar" class="chart-container"></div></div>';
     }
     html += '</div>';
+    if (insights.executive_summary) {
+      html += '<div class="card"><h3>종합의견</h3><div class="alert alert-info" style="line-height:1.6;font-size:0.95rem">' + esc(insights.executive_summary) + '</div></div>';
+    }
+    if (insights.recommended_strategy) {
+      html += '<div class="card"><h3>추천 전략</h3><p style="line-height:1.6;font-size:0.95rem">' + esc(insights.recommended_strategy) + '</p></div>';
+    }
+    if (insights.break_even_analysis) {
+      html += '<div class="card"><h3>손익분기 분석</h3><p style="line-height:1.6;font-size:0.95rem">' + esc(insights.break_even_analysis) + '</p></div>';
+    }
+    if (insights.investor_highlights && insights.investor_highlights.length) {
+      html += '<div class="card"><h3>투자자 포인트</h3><ul class="bullet-list">' + insights.investor_highlights.map(function(p) { return '<li style="margin-bottom:6px;line-height:1.5">' + esc(p) + '</li>'; }).join('') + '</ul></div>';
+    }
+    if (insights.risk_factors && insights.risk_factors.length) {
+      html += '<div class="card"><h3>리스크 요인</h3><ul class="bullet-list">' + insights.risk_factors.map(function(r) { return '<li style="margin-bottom:6px;line-height:1.5">' + esc(r) + '</li>'; }).join('') + '</ul></div>';
+    }
     document.getElementById('panelRoi').innerHTML = html || '<div class="card"><p>No ROI data for this run.</p></div>';
 
     if (Object.keys(scenarios).length && typeof Plotly !== 'undefined') {

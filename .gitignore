@@ -10,6 +10,9 @@ node_modules/
 **/firebase-key.json
 santokki/firebase-key.json
 
+# Google Cloud / GCP service account keys (never commit)
+tidy-drive*.json
+
 # Build / logs
 dist/
 *.log
