@@ -393,22 +393,28 @@ app.get('/api/schema', (req, res) => {
 
 // ─── Google Sheets (일일 프롬프트 자동 저장) ─────────────────────────────
 let googleSheetsClient = null;
+let lastSheetsAuthError = null; // 클라이언트 생성 실패 시 사유 (화면 안내용)
 function getGoogleSheetsClient() {
+  lastSheetsAuthError = null;
   if (googleSheetsClient) return googleSheetsClient;
   const json = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
   const keyPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
   let key = null;
-  if (json) {
+  if (json && typeof json === 'string' && json.trim()) {
     try {
-      key = typeof json === 'string' ? JSON.parse(json) : json;
+      key = JSON.parse(json);
     } catch (e) {
       console.warn('GOOGLE_SERVICE_ACCOUNT_JSON parse error:', e.message);
+      lastSheetsAuthError = 'GOOGLE_SERVICE_ACCOUNT_JSON 파싱 오류. Render에 JSON을 줄바꿈 없이 한 줄로 넣었는지 확인하고, 저장 후 재배포(Manual Deploy) 하세요.';
       return null;
     }
   } else if (keyPath && fs.existsSync(path.resolve(keyPath))) {
     key = require(path.resolve(keyPath));
   }
-  if (!key) return null;
+  if (!key) {
+    lastSheetsAuthError = 'GOOGLE_SERVICE_ACCOUNT_JSON이 비어 있습니다. Render → Environment → Edit에서 변수 추가 후, 서비스 계정 JSON 전체를 한 줄로 붙여넣고 재배포하세요.';
+    return null;
+  }
   const { google } = require('googleapis');
   const auth = new google.auth.GoogleAuth({
     credentials: key,
@@ -416,6 +422,9 @@ function getGoogleSheetsClient() {
   });
   googleSheetsClient = google.sheets({ version: 'v4', auth });
   return googleSheetsClient;
+}
+function getGoogleSheetsAuthErrorMessage() {
+  return lastSheetsAuthError || 'Google 시트 인증이 없습니다. .env에 GOOGLE_APPLICATION_CREDENTIALS(파일 경로) 또는 GOOGLE_SERVICE_ACCOUNT_JSON을 설정하고, 해당 스프레드시트를 서비스 계정 이메일에 공유해 주세요.';
 }
 
 /** .env의 GOOGLE_SHEET_ID(전체 링크, ID만, 또는 ID/edit?gid=0 등)에서 스프레드시트 ID 추출 */
@@ -439,7 +448,7 @@ async function appendPromptRowToSheet(payload) {
   const sheets = getGoogleSheetsClient();
   if (!sheets) {
     console.warn('Google Sheets auth not configured');
-    return { ok: false, message: 'Google Sheets auth not configured' };
+    return { ok: false, message: getGoogleSheetsAuthErrorMessage() };
   }
   const {
     date,
@@ -590,7 +599,7 @@ async function appendPromptHistoryRow(payload) {
   const spreadsheetId = getSheetId();
   const sheets = getGoogleSheetsClient();
   if (!spreadsheetId) return { ok: false, message: '.env에 GOOGLE_SHEET_ID를 넣어 주세요 (스프레드시트 URL 또는 ID)' };
-  if (!sheets) return { ok: false, message: 'Google 시트 인증이 없습니다. .env에 GOOGLE_APPLICATION_CREDENTIALS(파일 경로) 또는 GOOGLE_SERVICE_ACCOUNT_JSON을 설정하고, 해당 스프레드시트를 서비스 계정 이메일에 공유해 주세요.' };
+  if (!sheets) return { ok: false, message: getGoogleSheetsAuthErrorMessage() };
   const {
     date,
     productName,

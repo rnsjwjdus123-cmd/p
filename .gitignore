@@ -8,6 +8,7 @@ node_modules/
 
 # Firebase service account key (contains private key)
 **/firebase-key.json
+**/firebase-key-oneline.txt
 santokki/firebase-key.json
 
 # Google Cloud / GCP service account keys (never commit)

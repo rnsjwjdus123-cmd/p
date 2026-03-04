@@ -141,6 +141,7 @@ docker compose up -d
 | **santokki/README.md** | 인스타 DM 파이프라인 전체 흐름, n8n, Firestore 구조, 15문항 설문·매칭 알고리즘, 제품 라인업 |
 | **BACKBRIEF_프롬프트생성.md** | 대시보드 → 최적 상품 → 15초 광고·게시글 프롬프트 생성 설계·사용법·n8n 연동 |
 | **docs/배포_가이드.md** | 배포 준비 체크리스트 (Netlify / Render / Firebase 요약) |
+| **docs/기능_설명_및_일자별_발전.md** | 전체 기능 설명 + Git 기준 일자별 발전 요약 (저장·공유용) |
 | **docs/배포_프롬프트생성기.md** | 프롬프트 생성기만 따로 배포하는 방법 (Render 기준) |
 | **docs/가이드북_Make_구글시트_SNS자동발행.md** | Make.com + 구글 시트로 링크드인·네이버·X 자동 발행 가이드 |
 | **docs/Santokki_Make_Blueprint.json** | Make.com용 Blueprint: Firestore 퀴즈 결과 → OpenAI SNS 문구 생성 → 텔레그램 전송 (Import 후 연결만 설정) |
