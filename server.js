@@ -38,6 +38,14 @@ const app = express();
 const PORT = process.env.PORT || 7000;
 
 app.use(express.json());
+// Netlify 등 다른 도메인에서 API 호출 시 CORS 허용
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') return res.sendStatus(200);
+  next();
+});
 
 // /santokki/dashboard → dashboard.html 로 연결 (주소에 .html 안 쳐도 됨)
 app.get('/santokki/dashboard', (req, res) => {

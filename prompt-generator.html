@@ -172,11 +172,14 @@
   </div>
 
   <script>
-    const API_BASE = ''; // same origin
+    window.SANTOKKI_API_BASE = '';
+    window.SANTOKKI_API_READY = fetch('/config.json').then(function(r) { return r.json(); }).then(function(o) { if (o && o.apiBase) window.SANTOKKI_API_BASE = o.apiBase; }).catch(function() {});
+    function getApiBase() { return window.SANTOKKI_API_BASE || ''; }
     let lastGeneratedResult = null; // 앞선 프롬프트 생성 결과 (예쁘게 만들기용)
     let lastGeneratedStats = null;   // 대시보드 입력값 (인기 향·제품) — API가 최적 결과 내도록 전달
 
     document.getElementById('btnFirebase').onclick = async () => {
+      await window.SANTOKKI_API_READY;
       const statusEl = document.getElementById('firebaseStatus');
       statusEl.style.display = 'block';
       statusEl.textContent = 'Firebase 통계 불러오는 중…';
@@ -190,7 +193,7 @@
       document.getElementById('resultInstagram').style.display = 'none';
       document.getElementById('resultNaver').style.display = 'none';
       try {
-        const res = await fetch(API_BASE + '/api/stats-from-firebase');
+        const res = await fetch(getApiBase() + '/api/stats-from-firebase');
         const data = await res.json();
         if (!data.ok || data.count < 10) {
           statusEl.textContent = data.message || '시향 테스트 응답이 10명 이상일 때만 사용할 수 있습니다. (현재 ' + (data.count ?? 0) + '명)';
@@ -199,7 +202,7 @@
           return;
         }
         statusEl.textContent = '통계 반영됨 (' + data.count + '명). 프롬프트 생성 중…';
-        const genRes = await fetch(API_BASE + '/api/generate-prompts', {
+        const genRes = await fetch(getApiBase() + '/api/generate-prompts', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ stats: data.stats })
@@ -248,6 +251,7 @@
     };
 
     document.getElementById('btnGenerate').onclick = async () => {
+      await window.SANTOKKI_API_READY;
       const topScents = document.getElementById('topScents').value.split(',').map(s => s.trim()).filter(Boolean);
       const topProducts = document.getElementById('topProducts').value.split(',').map(s => s.trim()).filter(Boolean);
       let extra = {};
@@ -274,7 +278,7 @@
       document.body.classList.add('loading');
 
       try {
-        const res = await fetch(API_BASE + '/api/generate-prompts', {
+        const res = await fetch(getApiBase() + '/api/generate-prompts', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ stats })
@@ -316,7 +320,7 @@
         if (statusEl) { statusEl.style.display = 'block'; statusEl.textContent = msg; statusEl.style.color = ok ? 'var(--accent)' : '#b45309'; }
         if (resultEl) { resultEl.style.display = 'block'; resultEl.textContent = msg; resultEl.style.color = ok ? 'var(--accent)' : '#b45309'; }
       }
-      fetch(API_BASE + '/api/save-prompt-to-sheet', {
+      fetch(getApiBase() + '/api/save-prompt-to-sheet', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -341,13 +345,14 @@
 
     document.getElementById('btnFormat').onclick = async () => {
       if (!lastGeneratedResult) return;
+      await window.SANTOKKI_API_READY;
       const btn = document.getElementById('btnFormat');
       btn.disabled = true;
       btn.textContent = '만들어지는 중…';
       const opt = Array.isArray(lastGeneratedResult.optimalProduct) ? lastGeneratedResult.optimalProduct[0] : lastGeneratedResult.optimalProduct;
       const productName = (opt && (opt.name || opt.nameKo)) || '';
       try {
-        const res = await fetch(API_BASE + '/api/format-for-social', {
+        const res = await fetch(getApiBase() + '/api/format-for-social', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -436,7 +441,9 @@
     });
 
     (function setSheetLinks() {
-      fetch(API_BASE + '/api/sheet-url').then(r => r.json()).then(function(data) {
+      window.SANTOKKI_API_READY.then(function() {
+        return fetch(getApiBase() + '/api/sheet-url');
+      }).then(function(r) { return r.json(); }).then(function(data) {
         if (data.configured && data.url) {
           var gamePostUrl = data.gamePostManagementUrl || data.url;
           var topBlock = document.getElementById('sheetLinkTop');

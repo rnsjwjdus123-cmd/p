@@ -150,10 +150,13 @@
   document.getElementById('strategy-back-hub').addEventListener('click', function(e) { e.preventDefault(); window.location.hash = ''; });
   document.getElementById('dashboard-back-hub').addEventListener('click', function(e) { e.preventDefault(); window.location.hash = ''; });
 
-  // 구글 시트 링크: 서버 /api/sheet-url 에서 설정 여부 확인 후 표시
+  // 구글 시트 링크: 서버 /api/sheet-url 에서 설정 여부 확인 후 표시 (config.json에 apiBase 있으면 그쪽 API 사용)
   (function setHubSheetLink() {
-    var base = window.location.origin;
-    fetch(base + '/api/sheet-url').then(function(r) { return r.json(); }).then(function(data) {
+    function getBase(cb) {
+      fetch('/config.json').then(function(r) { return r.json(); }).then(function(o) { cb((o && o.apiBase) || window.location.origin); }).catch(function() { cb(window.location.origin); });
+    }
+    getBase(function(base) {
+      fetch((base.replace(/\/$/, '')) + '/api/sheet-url').then(function(r) { return r.json(); }).then(function(data) {
       if (data.configured && (data.url || data.gamePostManagementUrl)) {
         var link = document.getElementById('hubSheetLink');
         var block = document.getElementById('hubSheetBlock');
@@ -163,6 +166,7 @@
         }
       }
     }).catch(function() {});
+    });
   })();
 })();
   </script>
