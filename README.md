@@ -11,7 +11,7 @@ p/
 ├── README.md                 ← 이 문서 (전체 개요)
 ├── package.json              # npm 스크립트, 의존성
 ├── server.js                 # API 서버 (프롬프트 생성, Firebase 통계)
-├── .env.example              # 환경 변수 예시 (복사 → .env)
+├── .env.example              # 환경 변수 예시 (복사 → .env). 여러 .env 위치는 docs/ENV_정리.md 참고
 ├── .gitignore
 ├── netlify.toml              # Netlify 배포 설정
 ├── _redirects                # Netlify: /santokki/dashboard → .html
@@ -23,6 +23,7 @@ p/
 ├── styles.css, script.js
 ├── products.json             # 상품 14종 (쇼핑몰 + 퀴즈 매칭 공용)
 │
+├── hub.html                  # 진입점: Strategy / Dashboard 선택
 ├── prompt-generator.html     # 광고/게시글 프롬프트 생성 UI (API 서버 필요)
 ├── strategy.html             # 브랜드 성공 전략 (리스크·컴플라이언스·경쟁사·ROI) — project_html API 사용
 ├── unified-dashboard.html    # 통합 대시보드 (Firebase 통계·프롬프트·인플루언서·제품 전략)
@@ -126,6 +127,7 @@ docker compose up -d
 | 항목 | 설명 |
 |------|------|
 | **.env** (루트) | `OPENAI_API_KEY`, `LINKTREE_URL`, (선택) 트위터·네이버·구글 시트·일일 cron. `.env.example` 참고. **Git에 올리지 않음.** |
+| **.env 분류** | 루트 / project_html/backend / santokki / santokki/n8n-docker 별도. → **docs/ENV_정리.md** 참고 |
 | **santokki/firebase-key.json** | Firestore 서비스 계정 키. 프롬프트 생성 시 Firebase 통계 10명 이상 자동 연동에 사용. **Git에 올리지 않음.** |
 
 ---
@@ -140,6 +142,7 @@ docker compose up -d
 | **docs/가이드북_Make_구글시트_SNS자동발행.md** | Make.com + 구글 시트로 링크드인·네이버·X 자동 발행 가이드 |
 | **docs/Santokki_Make_Blueprint.json** | Make.com용 Blueprint: Firestore 퀴즈 결과 → OpenAI SNS 문구 생성 → 텔레그램 전송 (Import 후 연결만 설정) |
 | **docs/Make_Blueprint_산토끼_사용법.md** | 위 Blueprint Import 방법·수동 설정·Firebase·상품 이미지·프롬프트 복사용 설명 |
+| **docs/ENV_정리.md** | .env 파일 위치별 정리 (루트 / project_html / santokki / n8n-docker) |
 | **santokki/docs/** | 설문지 매칭 알고리즘 계획서, 제품 라인업·구매 링크, 회의록, 퀴즈 질문 목록 등 |
 
 ---

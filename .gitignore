@@ -13,6 +13,11 @@ santokki/firebase-key.json
 # Google Cloud / GCP service account keys (never commit)
 tidy-drive*.json
 
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
 # Build / logs
 dist/
 *.log
