@@ -295,7 +295,20 @@ Founder, Santokki`;
     btn.disabled = false;
   });
   document.getElementById('infApiUrl').addEventListener('change', () => loadProducts(document.getElementById('infApiUrl').value, 'infProduct'));
-  loadProducts(document.getElementById('infApiUrl').value, 'infProduct');
+
+  // Strategy API URL from config.json (strategyApiBase)
+  function applyStrategyApiBaseAndLoad() {
+    fetch('/config.json').then(r => r.json()).then(o => {
+      const base = (o && o.strategyApiBase) ? (o.strategyApiBase || '').replace(/\/$/, '') : '';
+      if (base) { document.getElementById('infApiUrl').value = base; document.getElementById('prodApiUrl').value = base; }
+      loadProducts(document.getElementById('infApiUrl').value, 'infProduct');
+      loadProducts(document.getElementById('prodApiUrl').value, 'prodProduct', 'prodProductStatus');
+    }).catch(() => {
+      loadProducts(document.getElementById('infApiUrl').value, 'infProduct');
+      loadProducts(document.getElementById('prodApiUrl').value, 'prodProduct', 'prodProductStatus');
+    });
+  }
+  applyStrategyApiBaseAndLoad();
 
   // Product strategy panel
   function renderProductStrategy(data) {
@@ -339,7 +352,6 @@ Founder, Santokki`;
     btn.disabled = false;
   });
   document.getElementById('prodApiUrl').addEventListener('change', () => loadProducts(document.getElementById('prodApiUrl').value, 'prodProduct', 'prodProductStatus'));
-  loadProducts(document.getElementById('prodApiUrl').value, 'prodProduct', 'prodProductStatus');
 })();
   </script>
 </body>

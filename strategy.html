@@ -363,7 +363,10 @@
   });
 
   document.getElementById('apiUrl').addEventListener('change', loadProducts);
-  loadProducts();
+  fetch('/config.json').then(function(r) { return r.json(); }).then(function(o) {
+    if (o && o.strategyApiBase) document.getElementById('apiUrl').value = (o.strategyApiBase || '').replace(/\/$/, '');
+    loadProducts();
+  }).catch(function() { loadProducts(); });
 })();
   </script>
 </body>

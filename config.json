@@ -1,3 +1,4 @@
 {
-  "apiBase": "https://api-santokki-2835.onrender.com"
+  "apiBase": "https://api-santokki-2835.onrender.com",
+  "strategyApiBase": "https://p-1-ms9n.onrender.com"
 }
